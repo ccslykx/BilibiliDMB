@@ -13,9 +13,8 @@ struct DanmuView: View {
     var scale: CGFloat = 1.0
     var fontname: String = ""
     var fontsize: CGFloat = 24.0
-    var paddingsize: CGFloat = 12.0
     
-    init(id: UUID, danmuMSG: DanmuMSG) {
+    init(danmuMSG: DanmuMSG) {
         self.danmuMSG = danmuMSG
     }
     
@@ -44,7 +43,6 @@ struct DanmuView: View {
             Text(danmuMSG.content)
                 .foregroundStyle(Color(dec: danmuMSG.color))
                 .font(.custom(fontname, size: fontsize * scale))
-                .padding(paddingsize * scale)
             }
     }
 }
