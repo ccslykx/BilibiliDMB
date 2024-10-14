@@ -23,3 +23,12 @@ extension Color {
         )
     }
 }
+
+extension Int {
+    func timestampToDate(format: String = "HH:mm:ss") -> String {  /// yyyy年MM月dd日 HH:mm:ss
+        let df = DateFormatter()
+        df.dateFormat = format
+        let date = Date(timeIntervalSince1970: TimeInterval(self))
+        return df.string(from: date)
+    }
+}

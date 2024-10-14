@@ -14,6 +14,8 @@
 		DF881A582CBD3ADE00EFBDFB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF881A572CBD3ADE00EFBDFB /* Preview Assets.xcassets */; };
 		DF881A5F2CBD3B5D00EFBDFB /* MedalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */; };
 		DF881A612CBD3C5300EFBDFB /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A602CBD3C5300EFBDFB /* Utils.swift */; };
+		DF881A632CBD44CA00EFBDFB /* DanmuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A622CBD44CA00EFBDFB /* DanmuView.swift */; };
+		DF881A652CBD457600EFBDFB /* BasicStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A642CBD457600EFBDFB /* BasicStructs.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +28,8 @@
 		DF881A572CBD3ADE00EFBDFB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedalView.swift; sourceTree = "<group>"; };
 		DF881A602CBD3C5300EFBDFB /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		DF881A622CBD44CA00EFBDFB /* DanmuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmuView.swift; sourceTree = "<group>"; };
+		DF881A642CBD457600EFBDFB /* BasicStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicStructs.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +66,8 @@
 				DF881A4F2CBD3ADD00EFBDFB /* ContentView.swift */,
 				DF881A512CBD3ADD00EFBDFB /* Item.swift */,
 				DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */,
+				DF881A622CBD44CA00EFBDFB /* DanmuView.swift */,
+				DF881A642CBD457600EFBDFB /* BasicStructs.swift */,
 				DF881A602CBD3C5300EFBDFB /* Utils.swift */,
 				DF881A532CBD3ADE00EFBDFB /* Assets.xcassets */,
 				DF881A552CBD3ADE00EFBDFB /* BilibiliDMB.entitlements */,
@@ -148,9 +154,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DF881A632CBD44CA00EFBDFB /* DanmuView.swift in Sources */,
 				DF881A612CBD3C5300EFBDFB /* Utils.swift in Sources */,
 				DF881A5F2CBD3B5D00EFBDFB /* MedalView.swift in Sources */,
 				DF881A502CBD3ADD00EFBDFB /* ContentView.swift in Sources */,
+				DF881A652CBD457600EFBDFB /* BasicStructs.swift in Sources */,
 				DF881A522CBD3ADD00EFBDFB /* Item.swift in Sources */,
 				DF881A4E2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift in Sources */,
 			);
