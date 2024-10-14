@@ -16,6 +16,7 @@
 		DF881A612CBD3C5300EFBDFB /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A602CBD3C5300EFBDFB /* Utils.swift */; };
 		DF881A632CBD44CA00EFBDFB /* DanmuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A622CBD44CA00EFBDFB /* DanmuView.swift */; };
 		DF881A652CBD457600EFBDFB /* BasicStructs.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A642CBD457600EFBDFB /* BasicStructs.swift */; };
+		DF881A672CBD561200EFBDFB /* GiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A662CBD561200EFBDFB /* GiftView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		DF881A602CBD3C5300EFBDFB /* Utils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
 		DF881A622CBD44CA00EFBDFB /* DanmuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DanmuView.swift; sourceTree = "<group>"; };
 		DF881A642CBD457600EFBDFB /* BasicStructs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasicStructs.swift; sourceTree = "<group>"; };
+		DF881A662CBD561200EFBDFB /* GiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 				DF881A4F2CBD3ADD00EFBDFB /* ContentView.swift */,
 				DF881A512CBD3ADD00EFBDFB /* Item.swift */,
 				DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */,
+				DF881A662CBD561200EFBDFB /* GiftView.swift */,
 				DF881A622CBD44CA00EFBDFB /* DanmuView.swift */,
 				DF881A642CBD457600EFBDFB /* BasicStructs.swift */,
 				DF881A602CBD3C5300EFBDFB /* Utils.swift */,
@@ -160,6 +163,7 @@
 				DF881A502CBD3ADD00EFBDFB /* ContentView.swift in Sources */,
 				DF881A652CBD457600EFBDFB /* BasicStructs.swift in Sources */,
 				DF881A522CBD3ADD00EFBDFB /* Item.swift in Sources */,
+				DF881A672CBD561200EFBDFB /* GiftView.swift in Sources */,
 				DF881A4E2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

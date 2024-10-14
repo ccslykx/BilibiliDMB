@@ -18,8 +18,8 @@ struct DanmuView: View {
         self.danmuMSG = danmuMSG
     }
     
-    init(content: String, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, color: UInt32, id: UUID = UUID()) {
-        danmuMSG = DanmuMSG(content: content, uid: uid, uname: uname, mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp, color: color)
+    init(content: String, color: UInt32, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int) {
+        self.danmuMSG = DanmuMSG(content: content, color: color, uid: uid, uname: uname, mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp)
     }
     
     var body: some View {
@@ -48,5 +48,5 @@ struct DanmuView: View {
 }
 
 #Preview {
-    DanmuView(content: "我是一条弹幕", uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: 1700000000, color: 7654321)
+    DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: 1700000000)
 }
