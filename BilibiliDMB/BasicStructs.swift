@@ -37,3 +37,15 @@ struct GiftMSG: Identifiable {
     let timestamp: Int      /// 时间戳
     let id: UUID = UUID()
 }
+
+struct EntryMSG: Identifiable {
+    let uid: Int?           /// uid
+    let uname: String       /// 用户名
+    
+    let mlevel: Int         /// 粉丝牌等级
+    let mcolor: UInt32      /// 粉丝牌颜色
+    let mname: String       /// 粉丝牌名称
+    
+    let timestamp: Int      /// 时间戳
+    let id: UUID = UUID()
+}
