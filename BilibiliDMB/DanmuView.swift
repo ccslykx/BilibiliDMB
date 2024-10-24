@@ -67,10 +67,28 @@ struct EntryView: View {
     }
 }
 
+struct SysMsgView: View {
+    var msg: String
+    var timestamp: Int
+    var scale: CGFloat
+    
+    init(msg: String, timestamp: Int = Int(Date.now.timeIntervalSince1970), scale: CGFloat = 1.0) {
+        self.msg = msg
+        self.timestamp = timestamp
+        self.scale = scale
+    }
+    
+    var body: some View {
+        DanmuView(content: msg, color: 0, uid: 0, uname: "系统消息", mlevel: 0, mcolor: 0, mname: "SYSTEM", timestamp: timestamp, scale: scale)
+    }
+}
+
 #Preview {
     VStack {
-        EntryView(uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: 1700000000)
+        var now = Int(Date.now.timeIntervalSince1970)
+        EntryView(uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now)
 
-        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: 1700000000, scale: 1.0)        
+        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 1.0)
+        SysMsgView(msg: "我是系统提示！")
     }
 }
