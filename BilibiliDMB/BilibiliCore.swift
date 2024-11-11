@@ -12,6 +12,9 @@ import SWCompression
 import SwiftBrotli
 
 class BilibiliCore: ObservableObject {
+    @Published var qrcode_url: String = ""
+    private var m_qrcode_key: String = ""
+    
     /* Variables */
     private var m_roomid: String = ""           /// 直播间ID
     private var m_realRoomid: String = ""       /// B站的内部ID
@@ -38,6 +41,26 @@ class BilibiliCore: ObservableObject {
     }
     
     /* Functions */
+    func login() {
+        let task = URLSession.shared.dataTask(with: URL(string: "https://passport.bilibili.com/x/passport-login/web/qrcode/generate")!) { data, response, error in
+            if (error != nil || data == nil) {
+                LOG("申请二维发生错误：\(String(describing: error))")
+                return
+            }
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                LOG("申请二维码时，服务器响应错误：\(String(describing: response))", .ERROR)
+                return
+            }
+            
+            let json = try? JSON(data: data!)
+            let url = json!["data"]["url"].stringValue
+            let qrcode_key = json!["data"]["qrcode_key"].stringValue
+            self.qrcode_url = url
+            self.m_qrcode_key = qrcode_key
+        }
+        task.resume()
+    }
+    
     private func initRoomInfo() {
         if (m_roomid.isEmpty) {
             LOG("房间号为空", .ERROR)
@@ -166,7 +189,7 @@ class BilibiliCore: ObservableObject {
                     LOG("连接失败，请检查网络配置", .ERROR)
                     self.m_initRoomInfoTimer?.invalidate()
                     return
-                }  
+                }
                 return
             }
             if (!self.m_hostlist.isEmpty && !self.m_token.isEmpty && !self.m_realRoomid.isEmpty)

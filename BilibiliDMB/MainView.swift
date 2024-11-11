@@ -22,6 +22,9 @@ struct MainView: View {
     private var capacity: Int = 5
      
     var body: some View {
+        Button("登录") {
+            bilicore.login()
+        }
         HStack {
             Image(systemName: "house.circle") // 一个图标
                 .imageScale(.large)
@@ -45,5 +48,8 @@ struct MainView: View {
                 }.buttonStyle(.bordered)
             }
         }.padding(20)
+        if (!self.bilicore.qrcode_url.isEmpty) {
+            Image(generateQRCode(from: self.bilicore.qrcode_url, size: 400)!, scale: 1.0, label: Text("Login QR Code"))
+        }
     }
 }

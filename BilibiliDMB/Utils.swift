@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreImage
 
 extension Color {
     init(dec: UInt32, alpha: Double = 1) {
@@ -60,3 +61,32 @@ extension Data {
         return Int(value)
     }
 }
+
+func generateQRCode(from string: String, size: CGFloat) -> CGImage? {
+    // Convert the input string to data
+    guard let data = string.data(using: .utf8) else { return nil }
+    
+    // Create the QR code filter
+    let filter = CIFilter(name: "CIQRCodeGenerator")
+    filter?.setValue(data, forKey: "inputMessage")
+    filter?.setValue("H", forKey: "inputCorrectionLevel") // Higher correction level for better readability
+    
+    // Get the output CIImage
+    guard let ciImage = filter?.outputImage else { return nil }
+    
+    // Calculate the scale needed to achieve the desired sharpness
+    let scaleX = size / ciImage.extent.size.width
+    let scaleY = size / ciImage.extent.size.height
+    let transform = CGAffineTransform(scaleX: scaleX, y: scaleY)
+    
+    // Apply scaling transform to make the QR code sharp
+    let scaledImage = ciImage.transformed(by: transform)
+    
+    // Convert to CGImage
+    let context = CIContext()
+    if let cgImage = context.createCGImage(scaledImage, from: scaledImage.extent) {
+        return cgImage
+    }
+    return nil
+}
+
