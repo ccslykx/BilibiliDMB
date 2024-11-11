@@ -146,7 +146,7 @@ class BilibiliCore: ObservableObject {
         
         var initialized: Bool = false
         var repeatCount: Int = 0
-        let repeatInterval: Double = 0.5
+        let repeatInterval: Double = 1.0
         m_initRoomInfoTimer = Timer.scheduledTimer(withTimeInterval: repeatInterval, repeats: true) {_ in
             repeatCount += 1
             if ((Double(repeatCount) * repeatInterval) > 30.0) {
@@ -166,10 +166,7 @@ class BilibiliCore: ObservableObject {
                     LOG("连接失败，请检查网络配置", .ERROR)
                     self.m_initRoomInfoTimer?.invalidate()
                     return
-                }
-                self.m_connected = true
-                LOG("连接成功")
-                self.m_initRoomInfoTimer?.invalidate()
+                }  
                 return
             }
             if (!self.m_hostlist.isEmpty && !self.m_token.isEmpty && !self.m_realRoomid.isEmpty)
@@ -187,6 +184,10 @@ class BilibiliCore: ObservableObject {
         }
         m_socket!.disconnect()
         m_connected = false
+        if (m_heartbeatTimer != nil)
+        {
+            m_heartbeatTimer?.invalidate()
+        }
         /// TODO: Add systemMSG
     }
     
@@ -333,15 +334,21 @@ extension BilibiliCore: WebSocketDelegate {
         
         switch event {
         case .connected(let header):
-            /// TODO: Notice connected
             LOG("Connected: \(header)")
             m_socket?.write(data: self.packet(7))
             m_heartbeatTimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(sendHeartbeat), userInfo: nil, repeats: true)
             m_heartbeatTimer?.fire()
+            
+            self.m_connected = true
+            LOG("连接成功")
+            if (m_initRoomInfoTimer != nil) {
+                self.m_initRoomInfoTimer?.invalidate()
+            }
             break
             
         case .disconnected(let reason, let code):
             LOG("Disconnected: \(reason) with code: \(code)")
+            self.disconnect()
             break
             
         case .text(let text):
@@ -362,6 +369,7 @@ extension BilibiliCore: WebSocketDelegate {
             
         case .error(let error):
             LOG("ERROR: \(String(describing: error))", .ERROR)
+            self.disconnect()
             break
             
         case .viabilityChanged(_):
@@ -374,10 +382,12 @@ extension BilibiliCore: WebSocketDelegate {
             
         case .cancelled:
             LOG("Cancelled")
+            self.disconnect()
             break
             
         case .peerClosed:
             LOG("PeerClosed")
+            self.disconnect()
             break
         }
     }
