@@ -22,9 +22,13 @@ struct MainView: View {
     private var capacity: Int = 5
      
     var body: some View {
-        Button("登录") {
-            bilicore.login()
+        HStack {
+            Button("登录") {
+                bilicore.login()
+            }
+            Text(bilicore.qrcode_status)
         }
+        
         HStack {
             Image(systemName: "house.circle") // 一个图标
                 .imageScale(.large)

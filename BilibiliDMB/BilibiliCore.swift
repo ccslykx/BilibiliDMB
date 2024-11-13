@@ -12,8 +12,12 @@ import SWCompression
 import SwiftBrotli
 
 class BilibiliCore: ObservableObject {
-    @Published var qrcode_url: String = ""
+    @Published var qrcode_url: String = ""      /// 二维码对应的链接
+    @Published var qrcode_status: String = ""   /// 二维码的扫描状态
+    
     private var m_qrcode_key: String = ""
+    private var m_cookie: HTTPCookie! = nil
+    private var m_uid: String = ""              /// 登录用户的uid
     
     /* Variables */
     private var m_roomid: String = ""           /// 直播间ID
@@ -29,8 +33,11 @@ class BilibiliCore: ObservableObject {
     private var m_apiGetInfoByRoom = ""         /// 用于获取`m_realRoomid`
     private var m_apiGetDanmuInfo = ""          /// 用于获取`m_token`
     
-    private var m_heartbeatTimer: Timer? = nil          /// HeartBeat Timer
-    private var m_initRoomInfoTimer: Timer? = nil       /// wait initRoomInfo()
+    private var m_heartbeatTimer: Timer! = nil          /// HeartBeat Timer
+    private var m_initRoomInfoTimer: Timer! = nil       /// wait initRoomInfo()
+    private var m_loginTimer: Timer! = nil              /// wait scan QR code and login
+    
+    private var m_loginDate: Date? = nil                /// 用于计算登录二维码是否超时
     
     private enum MessageType: String {
         case DANMU = "DANMU_MSG"
@@ -57,6 +64,99 @@ class BilibiliCore: ObservableObject {
             let qrcode_key = json!["data"]["qrcode_key"].stringValue
             self.qrcode_url = url
             self.m_qrcode_key = qrcode_key
+            LOG("m_qrcode_key: " + qrcode_key)
+        }
+        task.resume()
+
+        if (self.m_loginTimer == nil) {
+            self.m_loginTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) {_ in
+                self.getLoginStatus()
+            }
+            self.m_loginTimer.tolerance = 0.1
+        }
+        self.m_loginDate = Date()
+        self.m_loginTimer.fire()
+    }
+    
+    /// 执行`login`函数后，检测用户扫码登录状态
+    private func getLoginStatus() {
+        if (self.m_loginTimer != nil && m_loginDate != nil) {
+            let interval = Date().timeIntervalSince(self.m_loginDate!)
+            LOG(String(interval))
+            if (interval < 2) {
+                return
+            }
+            if (interval > 180) {
+                self.m_loginTimer.invalidate()
+                let warn: String = "扫码登录超时，请刷新二维码"
+                LOG(warn, .WARNING)
+                self.qrcode_status = warn
+                return
+            }
+        }
+        
+        var urlComponents = URLComponents(url: URL(string: "https://passport.bilibili.com/x/passport-login/web/qrcode/poll")!, resolvingAgainstBaseURL: false)
+        urlComponents?.queryItems = [
+            URLQueryItem(name: "qrcode_key", value: self.m_qrcode_key)
+        ]
+        guard let urlWithParams = urlComponents?.url else {
+            LOG("参数初始化错误 in processLogin()", .ERROR)
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: urlWithParams) { data, response, error in
+            if (error != nil || data == nil) {
+                LOG("检测扫码登录状态发生错误：\(String(describing: error))")
+                return
+            }
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                LOG("检测扫码登录状态时，服务器响应错误：\(String(describing: response))", .ERROR)
+                return
+            }
+            
+            let json = try? JSON(data: data!)
+            
+            let data = json?["data"]
+            let code = data?["code"]
+            let message = data?["message"]
+            if (message != nil) {
+                self.qrcode_status = message?.stringValue ?? ""
+            }
+
+            switch code?.intValue {
+            /*
+             /// 0     登录成功
+             /// 86038 二维码已失效
+             /// 86090 已扫码未确认
+             /// 86101 未扫码
+             */
+            case 0: /// 登录成功
+//                let refresh_token: String = (data?["refresh_token"])!.stringValue
+                if let url: URL = URL(string: (data?["url"])!.stringValue) {
+                    LOG("url: ")
+                    LOG(url.absoluteString)
+                    if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+                        if let queryItems = components.queryItems {
+                            let m_cookie = HTTPCookie()
+                            
+                            for item in queryItems {
+                                m_cookie.setValue(item.value, forKey: item.name)
+                                if (item.name == "DedeUserID") {
+                                    self.m_uid = item.value!
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if (self.m_loginTimer != nil) {
+                    self.m_loginTimer.invalidate()
+                }
+                break
+            
+            default:
+                break
+            }
         }
         task.resume()
     }
@@ -154,7 +254,12 @@ class BilibiliCore: ObservableObject {
             m_currentHostlistIndex += 1
         }
         LOG("m_url: \(String(describing: m_url))")
-        m_socket = WebSocket(request: URLRequest(url: m_url ?? URL(string: "wss://broadcastlv.chat.bilibili.com:443/sub")!))
+        var request = URLRequest(url: m_url ?? URL(string: "wss://broadcastlv.chat.bilibili.com:443/sub")!)
+        if let m_cookie = m_cookie {
+            let cookieHeader = "\(m_cookie.name)=\(m_cookie.value)"
+            request.setValue(cookieHeader, forHTTPHeaderField: "Cookie")
+        }
+        m_socket = WebSocket(request: request)
         m_socket?.delegate = self
         m_socket?.connect()
         /// TODO: 检测是否连接成功
@@ -222,7 +327,7 @@ class BilibiliCore: ObservableObject {
         
         switch type {
         case 7: ///认证包
-            let str = "{\"uid\": 0,\"roomid\": \(self.m_realRoomid),\"protover\": 2,\"platform\": \"web\",\"type\": 2,\"clientver\": \"1.14.3\",\"key\": \"\(self.m_token)\"}"
+            let str = "{\"uid\": \(m_uid),\"roomid\": \(self.m_realRoomid),\"protover\": 2,\"platform\": \"web\",\"type\": 2,\"clientver\": \"1.14.3\",\"key\": \"\(self.m_token)\"}"
             bodyDatas = str.data(using: String.Encoding.utf8)!
             
         default: ///心跳包
