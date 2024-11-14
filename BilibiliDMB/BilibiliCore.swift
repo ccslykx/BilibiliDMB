@@ -10,6 +10,8 @@ import Starscream
 import SwiftyJSON
 import SWCompression
 import SwiftBrotli
+import CryptoKit
+import Security
 
 class BilibiliCore: ObservableObject {
     @Published var qrcode_url: String = ""      /// 二维码对应的链接
@@ -17,7 +19,8 @@ class BilibiliCore: ObservableObject {
     
     private var m_qrcode_key: String = ""
     private var m_cookie: HTTPCookie! = nil
-    private var m_uid: String = ""              /// 登录用户的uid
+    private var m_uid: String = "0"              /// 登录用户的uid
+    private let m_identifier = "com.ccslykx.BilibiliDMB"
     
     /* Variables */
     private var m_roomid: String = ""           /// 直播间ID
@@ -49,6 +52,13 @@ class BilibiliCore: ObservableObject {
     
     /* Functions */
     func login() {
+        /// 先检测是否有保存Cookies
+        let key = SymmetricKey(data: SHA256.hash(data: m_identifier.data(using: .utf8)!).withUnsafeBytes { ptr in Data(ptr)} )
+        if (loadCookieFromFile(key: key)) {
+            /// TODO: 检测Cookie是否过期
+            return
+        }
+        
         let task = URLSession.shared.dataTask(with: URL(string: "https://passport.bilibili.com/x/passport-login/web/qrcode/generate")!) { data, response, error in
             if (error != nil || data == nil) {
                 LOG("申请二维发生错误：\(String(describing: error))")
@@ -132,21 +142,9 @@ class BilibiliCore: ObservableObject {
              */
             case 0: /// 登录成功
 //                let refresh_token: String = (data?["refresh_token"])!.stringValue
+                
                 if let url: URL = URL(string: (data?["url"])!.stringValue) {
-                    LOG("url: ")
-                    LOG(url.absoluteString)
-                    if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
-                        if let queryItems = components.queryItems {
-                            let m_cookie = HTTPCookie()
-                            
-                            for item in queryItems {
-                                m_cookie.setValue(item.value, forKey: item.name)
-                                if (item.name == "DedeUserID") {
-                                    self.m_uid = item.value!
-                                }
-                            }
-                        }
-                    }
+                    self.saveCookie(url: url)
                 }
                 
                 if (self.m_loginTimer != nil) {
@@ -159,6 +157,91 @@ class BilibiliCore: ObservableObject {
             }
         }
         task.resume()
+    }
+    
+    private func saveCookie(url: URL) {
+        var cookies = [String : String]()
+        if let components = URLComponents(url: url, resolvingAgainstBaseURL: false) {
+            if let queryItems = components.queryItems {
+                let cookie = HTTPCookie()
+                for item in queryItems {
+                    cookies[item.name] = item.value
+                    cookie.setValue(item.value, forKey: item.name)
+                    if (item.name == "DedeUserID") {
+                        self.m_uid = item.value ?? "0"
+                    }
+                }
+                self.m_cookie = cookie
+            }
+        }
+        
+        saveCookieToFile(cookies)
+    }
+    
+    private func saveCookieToFile(_ cookies: [String : String]) -> Bool {
+        if (cookies.isEmpty) {
+            LOG("Not cookie found, please login first!", .WARNING)
+            return false
+        }
+        
+        let key = SymmetricKey(data: SHA256.hash(data: m_identifier.data(using: .utf8)!).withUnsafeBytes { ptr in Data(ptr)} )
+        
+        /// Init file path
+        let appDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let cookiesFilePath = appDir.appendingPathComponent("BilibiliDMB/BilibiliDMB.Core")
+        do {
+            try FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true, attributes: nil)
+        } catch {
+            LOG("Failed to create directory: \(error.localizedDescription)")
+        }
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: cookies)
+            let sealedBox = try AES.GCM.seal(jsonData, using: key)
+            try sealedBox.combined?.write(to: cookiesFilePath)
+            LOG("Cookies saved to file at \(cookiesFilePath)")
+            return true
+        } catch {
+            LOG("Failed to save cookies: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    private func loadCookieFromFile(key: SymmetricKey) -> Bool {
+        let appDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let cookiesFilePath = appDir.appendingPathComponent("BilibiliDMB/BilibiliDMB.Core")
+        do {
+            /// Read the encrypted data from file
+            let encryptedData = try Data(contentsOf: cookiesFilePath)
+            
+            /// Decrypt the data
+            let sealedBox = try AES.GCM.SealedBox(combined: encryptedData)
+            let decryptedData = try AES.GCM.open(sealedBox, using: key)
+            
+            /// Convert decrypted data back to JSON
+            guard let json = try JSONSerialization.jsonObject(with: decryptedData) as? [String : String] else {
+                LOG("Failed to convert cookies from file to JSON", .ERROR)
+                return false
+            }
+            
+            let cookie = HTTPCookie()
+            for key in json.keys {
+                cookie.setValue(json[key], forKey: key)
+                if (key == "DedeUserID") {
+                    m_uid = json[key] ?? "0"
+                }
+            }
+            m_cookie = cookie
+            if (m_uid == "0") {
+                LOG("Warning: Can not find uid in cookies", .WARNING)
+            }
+            LOG("Loaded cookies from file")
+
+            return true
+        } catch {
+            LOG("Failed to load cookies: \(error.localizedDescription)")
+            return false
+        }
     }
     
     private func initRoomInfo() {
@@ -429,24 +512,28 @@ class BilibiliCore: ObservableObject {
     }
     
     private func processMsg(_ json: JSON) {
-        LOG(json.stringValue)
+        LOG("PROCESS_MSG " + json.stringValue)
         
         let cmd = json["cmd"].stringValue
         switch cmd {
         case MessageType.DANMU.rawValue:
+            LOG("DANMU")
             break
             
         case MessageType.GIFT.rawValue:
+            LOG("GIFT")
             break
             
         case MessageType.COMBO.rawValue:
+            LOG("COMBO")
             break
             
         case MessageType.ENTRY.rawValue:
+            LOG("ENTRY")
             break
             
         default:
-            LOG(json.stringValue, .WARNING)
+            LOG("UNKNOWN CMD: " + json.stringValue, .WARNING)
             break
         }
     }
