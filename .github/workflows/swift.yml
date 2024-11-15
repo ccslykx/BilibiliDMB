@@ -24,7 +24,7 @@ jobs:
       run: xcodebuild -project BilibiliDMB.xcodeproj -scheme BilibiliDMB -configuration Release -destination 'platform=macOS' -derivedDataPath ~/build
 
     - name: Archieve 
-      run: tar cvJf ~/BilibiliDMB.tar.xz ~/build/Build/Products/Release/BilibiliDMB.app
+      run: cd ~/build/Build/Products/Release/; tar cvJf ~/BilibiliDMB.tar.xz ./BilibiliDMB.app
 
     - name: Save
       uses: actions/upload-artifact@v4
