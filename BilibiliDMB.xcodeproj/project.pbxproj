@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		DF881A4E2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A4D2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift */; };
-		DF881A502CBD3ADD00EFBDFB /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A4F2CBD3ADD00EFBDFB /* ContentView.swift */; };
-		DF881A522CBD3ADD00EFBDFB /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A512CBD3ADD00EFBDFB /* Item.swift */; };
 		DF881A542CBD3ADE00EFBDFB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF881A532CBD3ADE00EFBDFB /* Assets.xcassets */; };
 		DF881A582CBD3ADE00EFBDFB /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DF881A572CBD3ADE00EFBDFB /* Preview Assets.xcassets */; };
 		DF881A5F2CBD3B5D00EFBDFB /* MedalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */; };
@@ -28,8 +26,6 @@
 /* Begin PBXFileReference section */
 		DF881A4A2CBD3ADD00EFBDFB /* BilibiliDMB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BilibiliDMB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF881A4D2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BilibiliDMBApp.swift; sourceTree = "<group>"; };
-		DF881A4F2CBD3ADD00EFBDFB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		DF881A512CBD3ADD00EFBDFB /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		DF881A532CBD3ADE00EFBDFB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DF881A552CBD3ADE00EFBDFB /* BilibiliDMB.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BilibiliDMB.entitlements; sourceTree = "<group>"; };
 		DF881A572CBD3ADE00EFBDFB /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -78,8 +74,6 @@
 			children = (
 				DF881A4D2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift */,
 				DF881A772CCAA97900EFBDFB /* MainView.swift */,
-				DF881A4F2CBD3ADD00EFBDFB /* ContentView.swift */,
-				DF881A512CBD3ADD00EFBDFB /* Item.swift */,
 				DF881A5E2CBD3B5D00EFBDFB /* MedalView.swift */,
 				DF881A662CBD561200EFBDFB /* GiftView.swift */,
 				DF881A622CBD44CA00EFBDFB /* DanmuView.swift */,
@@ -187,9 +181,7 @@
 				DF881A612CBD3C5300EFBDFB /* Utils.swift in Sources */,
 				DF881A5F2CBD3B5D00EFBDFB /* MedalView.swift in Sources */,
 				DF881A782CCAA97900EFBDFB /* MainView.swift in Sources */,
-				DF881A502CBD3ADD00EFBDFB /* ContentView.swift in Sources */,
 				DF881A652CBD457600EFBDFB /* BasicStructs.swift in Sources */,
-				DF881A522CBD3ADD00EFBDFB /* Item.swift in Sources */,
 				DF881A672CBD561200EFBDFB /* GiftView.swift in Sources */,
 				DF881A4E2CBD3ADD00EFBDFB /* BilibiliDMBApp.swift in Sources */,
 				DF881A692CC4D78600EFBDFB /* BilibiliCore.swift in Sources */,
