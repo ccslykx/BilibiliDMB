@@ -155,6 +155,7 @@ class BilibiliCore: ObservableObject {
                 if (self.m_loginTimer != nil) {
                     self.m_loginTimer.invalidate()
                 }
+                self.qrcode_status = "登录成功"
                 break
             
             default:

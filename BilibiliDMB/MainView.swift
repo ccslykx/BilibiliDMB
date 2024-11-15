@@ -28,7 +28,9 @@ struct MainView: View {
                 } else {
                     Button("连接") {
                         bilicore.connect(roomid: liveRoomID)
-                    }.buttonStyle(.bordered)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(bilicore.qrcode_status != "登录成功")
                 }
                 
                 Button("登录") {
