@@ -21,7 +21,7 @@ jobs:
       run: xcodebuild -resolvePackageDependencies
     
     - name: Build
-      run: xcodebuild -project BilibiliDMB.xcodeproj -configuration Release -destination 'platform=macOS' -derivedDataPath ./build
+      run: xcodebuild -project BilibiliDMB.xcodeproj -scheme BilibiliDMB -configuration Release -destination 'platform=macOS' -derivedDataPath ./build
 
     - name: Archieve 
       run: tar cvJf ~/BilibiliDMB.tar.xz -C ./build/BilibiliDMB.app
