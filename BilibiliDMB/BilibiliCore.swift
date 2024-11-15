@@ -16,6 +16,11 @@ import Security
 class BilibiliCore: ObservableObject {
     @Published var qrcode_url: String = ""      /// 二维码对应的链接
     @Published var qrcode_status: String = ""   /// 二维码的扫描状态
+    @Published var isConnected: Bool = false       /// 当前是否连接
+    
+    @Published var danmuMSGs: [DanmuMSG] = []
+    @Published var giftMSGs: [GiftMSG] = []
+    @Published var entryMSGs: [EntryMSG] = []
     
     private var m_qrcode_key: String = ""
     private var m_cookie: HTTPCookie! = nil
@@ -31,7 +36,6 @@ class BilibiliCore: ObservableObject {
     private var m_currentHostlistIndex: Int = 0 /// 对于API返回的Host列表，当前使用Host的索引
     private var m_hostlist: [JSON] = []         /// API返回的Host列表
     private var m_socket: WebSocket? = nil      /// 用于接收弹幕的socket
-    private var m_connected: Bool = false       /// 当前是否连接
     
     private var m_apiGetInfoByRoom = ""         /// 用于获取`m_realRoomid`
     private var m_apiGetDanmuInfo = ""          /// 用于获取`m_token`
@@ -55,6 +59,7 @@ class BilibiliCore: ObservableObject {
         /// 先检测是否有保存Cookies
         let key = SymmetricKey(data: SHA256.hash(data: m_identifier.data(using: .utf8)!).withUnsafeBytes { ptr in Data(ptr)} )
         if (loadCookieFromFile(key: key)) {
+            qrcode_status = "登录成功"
             /// TODO: 检测Cookie是否过期
             return
         }
@@ -74,7 +79,7 @@ class BilibiliCore: ObservableObject {
             let qrcode_key = json!["data"]["qrcode_key"].stringValue
             self.qrcode_url = url
             self.m_qrcode_key = qrcode_key
-            LOG("m_qrcode_key: " + qrcode_key)
+//            LOG("m_qrcode_key: " + qrcode_key)
         }
         task.resume()
 
@@ -336,7 +341,7 @@ class BilibiliCore: ObservableObject {
             }
             m_currentHostlistIndex += 1
         }
-        LOG("m_url: \(String(describing: m_url))")
+//        LOG("m_url: \(String(describing: m_url))")
         var request = URLRequest(url: m_url ?? URL(string: "wss://broadcastlv.chat.bilibili.com:443/sub")!)
         if let m_cookie = m_cookie {
             let cookieHeader = "\(m_cookie.name)=\(m_cookie.value)"
@@ -390,11 +395,11 @@ class BilibiliCore: ObservableObject {
     }
     
     func disconnect() {
-        if (!m_connected) {
+        if (!isConnected) {
             return
         }
         m_socket!.disconnect()
-        m_connected = false
+        isConnected = false
         if (m_heartbeatTimer != nil)
         {
             m_heartbeatTimer?.invalidate()
@@ -461,22 +466,22 @@ class BilibiliCore: ObservableObject {
         switch protocolVer._2BytesToInt() {
         case 0: // JSON
             if let json = try? JSON(data: body) {
-                LOG("[Protocol Version 0] \(String(describing: json.rawString()))")
+//                LOG("[Protocol Version 0] \(String(describing: json.rawString()))")
             } else {
-                LOG("[Protocol Version 0] \(String(describing: body))")
+//                LOG("[Protocol Version 0] \(String(describing: body))")
             }
             break
             
         case 1: // 人气值
             if let json = try? JSON(data: body) {
-                LOG("[Protocol Version 1] \(String(describing: json.rawString()))")
+//                LOG("[Protocol Version 1] \(String(describing: json.rawString()))")
             } else {
-                LOG("[Protocol Version 1] \(String(describing: body))")
+//                LOG("[Protocol Version 1] \(String(describing: body))")
             }
             break
             
         case 2: // zlib JSON
-            LOG("[Protocol Version 2] [Operation]  \(operation._4BytesToInt())")
+//            LOG("[Protocol Version 2] [Operation]  \(operation._4BytesToInt())")
             
             guard let unarchived = try? ZlibArchive.unarchive(archive: body) else {
                 LOG("Failed Unzip Data", .WARNING)
@@ -486,13 +491,13 @@ class BilibiliCore: ObservableObject {
             
             
         case 3: // brotli JSON
-            LOG("[Protocol Version] 3")
+//            LOG("[Protocol Version] 3")
             let unarchived = Brotli().decompress(data)
             processMsg(JSON(unarchived))
             break
             
         default:
-            LOG("[Protocol Version (\(protocolVer._2BytesToInt()))] \(data)")
+//            LOG("[Protocol Version (\(protocolVer._2BytesToInt()))] \(data)")
             break
         }
         
@@ -512,35 +517,68 @@ class BilibiliCore: ObservableObject {
     }
     
     private func processMsg(_ json: JSON) {
-        LOG("PROCESS_MSG " + json.stringValue)
+//        LOG("PROCESS_MSG " + json.debugDescription)
         
         let cmd = json["cmd"].stringValue
         switch cmd {
         case MessageType.DANMU.rawValue:
-            LOG("DANMU")
+            let info = json["info"]
+            let medal_info = info.arrayValue[3].arrayValue
+            let ml = medal_info.isEmpty ? 0 : medal_info[0].intValue
+            let mc = medal_info.isEmpty ? 16777215 : medal_info[4].uInt32Value
+            let mn = medal_info.isEmpty ? "" : medal_info[1].stringValue
+            let danmuMSG = DanmuMSG(content: info.arrayValue[1].stringValue,
+                                    color: info.arrayValue[0].arrayValue[3].uInt32Value,
+                                    uid: info.arrayValue[2].arrayValue[0].intValue,
+                                    uname: info.arrayValue[2].arrayValue[1].stringValue,
+                                    mlevel: ml,
+                                    mcolor: mc,
+                                    mname: mn,
+                                    timestamp: info.arrayValue[9]["ts"].intValue)
+            danmuMSGs.append(danmuMSG)
+            LOG(danmuMSG)
             break
             
         case MessageType.GIFT.rawValue:
-            LOG("GIFT")
+            let data = json["data"]
+            let giftMSG = GiftMSG(giftname: data["giftName"].stringValue,
+                                  giftnum: data["num"].intValue,
+                                  giftprice: data["price"].intValue,
+                                  uid: data["uid"].intValue,
+                                  uname: data["uname"].stringValue,
+                                  mlevel: data["medal_info"]["medal_level"].intValue,
+                                  mcolor: data["medal_info"]["medal_color"].uInt32Value,
+                                  mname: data["medal_info"]["medal_name"].stringValue,
+                                  timestamp: data["timestamp"].intValue)
+            giftMSGs.append(giftMSG)
+            LOG(giftMSG)
             break
             
         case MessageType.COMBO.rawValue:
-            LOG("COMBO")
+//            LOG("COMBO")
             break
             
         case MessageType.ENTRY.rawValue:
-            LOG("ENTRY")
+            let data = json["data"]
+            let entryMSG = EntryMSG(uid: data["uid"].intValue,
+                                    uname: data["uname"].stringValue,
+                                    mlevel: data["fans_medal"]["medal_level"].intValue,
+                                    mcolor: data["fans_medal"]["medal_color"].uInt32Value,
+                                    mname: data["fans_medal"]["medal_name"].stringValue,
+                                    timestamp: data["timestamp"].intValue)
+            entryMSGs.append(entryMSG)
+            LOG(entryMSG)
             break
             
         default:
-            LOG("UNKNOWN CMD: " + json.stringValue, .WARNING)
+//            LOG("UNKNOWN CMD: " + json.debugDescription, .WARNING)
             break
         }
     }
     
     @objc func sendHeartbeat() {
             self.m_socket!.write(data: self.packet(2))
-            LOG("Send heartbeat")
+//            LOG("Send heartbeat")
     }
 }
 
@@ -549,12 +587,12 @@ extension BilibiliCore: WebSocketDelegate {
         
         switch event {
         case .connected(let header):
-            LOG("Connected: \(header)")
+//            LOG("Connected: \(header)")
             m_socket?.write(data: self.packet(7))
             m_heartbeatTimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(sendHeartbeat), userInfo: nil, repeats: true)
             m_heartbeatTimer?.fire()
             
-            self.m_connected = true
+            self.isConnected = true
             LOG("连接成功")
             if (m_initRoomInfoTimer != nil) {
                 self.m_initRoomInfoTimer?.invalidate()
@@ -575,11 +613,11 @@ extension BilibiliCore: WebSocketDelegate {
             break
             
         case .pong(_):
-            LOG("PONG")
+//            LOG("PONG")
             break
             
         case .ping(_):
-            LOG("PING")
+//            LOG("PING")
             break
             
         case .error(let error):
@@ -588,7 +626,7 @@ extension BilibiliCore: WebSocketDelegate {
             break
             
         case .viabilityChanged(_):
-            LOG("ViabilityChanged")
+//            LOG("ViabilityChanged")
             break
             
         case .reconnectSuggested(_):

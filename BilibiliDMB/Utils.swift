@@ -38,10 +38,37 @@ enum LogLevel: String {
     case INFO = "INFO"
     case WARNING = "WARNING"
     case ERROR = "ERROR"
+    case DANMU = "DANMU"
+    case GIFT = "GIFT"
+    case ENTRY = "ENTRY"
 }
 
 func LOG(_ message: String, _ level: LogLevel = LogLevel.INFO) {
     print("\(Date.now.formatted(date: .abbreviated, time: .standard)) [\(level)] \(message)")
+}
+
+func LOG(_ d: DanmuMSG) {
+    if (d.mlevel == 0) {
+        print("[\(LogLevel.DANMU)] \(d.timestamp.timestampToDate(format: "HH:mm:ss")) \(d.uname): \(d.content)")
+    } else {
+        print("[\(LogLevel.DANMU)] \(d.timestamp.timestampToDate(format: "HH:mm:ss")) [\(d.mname) <\(d.mlevel)>] \(d.uname): \(d.content)")
+    }
+}
+
+func LOG(_ g: GiftMSG, _ level: LogLevel = LogLevel.INFO) {
+    if (g.mlevel == 0) {
+        print("[\(LogLevel.GIFT)] \(g.timestamp.timestampToDate(format: "HH:mm:ss")) \(g.uname) 送出了 \(g.giftnum) 个 \(g.giftname)")
+    } else {
+        print("[\(LogLevel.GIFT)] \(g.timestamp.timestampToDate(format: "HH:mm:ss")) [\(g.mname) <\(g.mlevel)>] \(g.uname) 送出了 \(g.giftnum) 个 \(g.giftname)")
+    }
+}
+
+func LOG(_ e: EntryMSG, _ level: LogLevel = LogLevel.INFO) {
+    if (e.mlevel == 0) {
+        print("[\(LogLevel.ENTRY)] \(e.timestamp.timestampToDate(format: "HH:mm:ss")) \(e.uname) 进入了直播间")
+    } else {
+        print("[\(LogLevel.ENTRY)] \(e.timestamp.timestampToDate(format: "HH:mm:ss")) [\(e.mname) <\(e.mlevel)>] \(e.uname) 进入了直播间")
+    }
 }
 
 extension Data {
@@ -90,3 +117,45 @@ func generateQRCode(from string: String, size: CGFloat) -> CGImage? {
     return nil
 }
 
+// https://www.jianshu.com/p/04e76474ec6d
+struct FixedSizeArray<T: Equatable> : Equatable, RandomAccessCollection {
+    private var maxSize: Int
+    private var array: [T] = []
+    var count = 0
+    
+    init (maxSize: Int) {
+        self.maxSize = maxSize
+        self.array = [T]()
+    }
+    
+    var startIndex: Int { array.startIndex }
+    var endIndex: Int { array.endIndex }
+    
+    mutating func append(newElement: T) {
+        let d = count - maxSize
+        if (d > 0 && maxSize > 0) {
+            array.removeFirst(d)
+            count -= d
+        }
+        array.append(newElement)
+        count += 1
+    }
+    
+    mutating func setMaxSize(maxSize: Int) {
+        self.maxSize = maxSize
+    }
+    
+    static func == (l: FixedSizeArray<T>, r: FixedSizeArray<T>) -> Bool {
+        if (l.array == r.array) {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    subscript(index: Int) -> T {
+        assert(index >= 0)
+        assert(index < count)
+        return array[index]
+    }
+}
