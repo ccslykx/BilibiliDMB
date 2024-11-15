@@ -23,6 +23,9 @@ jobs:
     - name: Build
       run: xcodebuild -project BilibiliDMB.xcodeproj -scheme BilibiliDMB -configuration Release -destination 'platform=macOS' -derivedDataPath ~/build
 
+    - name: review
+      run: ls -a ~/build/Build/Products/Release/BilibiliDMB.app
+
     - name: Archieve 
       run: tar cvJf ~/BilibiliDMB.tar.xz -C ~/build/Build/Products/Release/BilibiliDMB.app
 
