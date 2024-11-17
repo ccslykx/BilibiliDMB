@@ -44,33 +44,22 @@ struct MainView: View {
             }
             ScrollViewReader { proxy in
                 List {
-                    ForEach(bilicore.danmuMSGs.indices, id: \.self) { i in
-                        DanmuView(danmuMSG: bilicore.danmuMSGs[i]).id(i)
+                    ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
+                        if bilicore.bilibiliMSGs[i] is DanmuMSG {
+                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
+                        } else if bilicore.bilibiliMSGs[i] is GiftMSG {
+                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
+                        }
                     }
                 }
-                .onChange(of: bilicore.danmuMSGs, {
+                .onChange(of: bilicore.bilibiliMSGs, {
                     withAnimation(.easeInOut) {
-                        proxy.scrollTo(bilicore.danmuMSGs.indices.last)
+                        proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
                     }
                 })
                 .background(Color.clear)
                 .scrollContentBackground(.hidden)
                 
-            }
-            
-            ScrollViewReader { proxy in
-                List {
-                    ForEach(bilicore.giftMSGs.indices, id: \.self) { i in
-                        GiftView(giftMSG: bilicore.giftMSGs[i]).id(i)
-                    }
-                }
-                .onChange(of: bilicore.giftMSGs, {
-                    withAnimation(.easeInOut) {
-                        proxy.scrollTo(bilicore.giftMSGs.indices.last)
-                    }
-                })
-                .background(Color.clear)
-                .scrollContentBackground(.hidden)
             }
             
             if (!bilicore.entryMSGs.isEmpty) {

@@ -18,8 +18,7 @@ class BilibiliCore: ObservableObject {
     @Published var qrcode_status: String = ""   /// 二维码的扫描状态
     @Published var isConnected: Bool = false       /// 当前是否连接
     
-    @Published var danmuMSGs: [DanmuMSG] = []
-    @Published var giftMSGs: [GiftMSG] = []
+    @Published var bilibiliMSGs: [BilibiliMSG] = []
     @Published var entryMSGs: [EntryMSG] = []
     
     private var m_qrcode_key: String = ""
@@ -536,7 +535,7 @@ class BilibiliCore: ObservableObject {
                                     mcolor: mc,
                                     mname: mn,
                                     timestamp: info.arrayValue[9]["ts"].intValue)
-            danmuMSGs.append(danmuMSG)
+            bilibiliMSGs.append(danmuMSG)
             LOG(danmuMSG)
             break
             
@@ -551,7 +550,7 @@ class BilibiliCore: ObservableObject {
                                   mcolor: data["medal_info"]["medal_color"].uInt32Value,
                                   mname: data["medal_info"]["medal_name"].stringValue,
                                   timestamp: data["timestamp"].intValue)
-            giftMSGs.append(giftMSG)
+            bilibiliMSGs.append(giftMSG)
             LOG(giftMSG)
             break
             

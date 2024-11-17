@@ -7,7 +7,19 @@
 
 import Foundation
 
-struct DanmuMSG: Identifiable, Equatable, Hashable {
+class BilibiliMSG: Identifiable, Equatable, Hashable {
+    let id: UUID = UUID()
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (l: BilibiliMSG, r: BilibiliMSG) -> Bool {
+        return l.id == r.id
+    }
+}
+
+class DanmuMSG: BilibiliMSG {
     let content: String     /// 弹幕内容
     let color: UInt32       /// 弹幕颜色
 
@@ -19,18 +31,20 @@ struct DanmuMSG: Identifiable, Equatable, Hashable {
     let mname: String       /// 粉丝牌名称
 
     let timestamp: Int      /// 时间戳
-    let id: UUID = UUID()
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    static func == (l: DanmuMSG, r: DanmuMSG) -> Bool {
-        return l.id == r.id
+    init(content: String, color: UInt32, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int) {
+        self.content = content
+        self.color = color
+        self.uid = uid
+        self.uname = uname
+        self.mlevel = mlevel
+        self.mcolor = mcolor
+        self.mname = mname
+        self.timestamp = timestamp
     }
 }
 
-struct GiftMSG: Identifiable, Equatable, Hashable {
+class GiftMSG: BilibiliMSG {
     let giftname: String    /// 礼物名称
     let giftnum: Int        /// 礼物数量
     let giftprice: Int      /// 礼物价值
@@ -43,18 +57,21 @@ struct GiftMSG: Identifiable, Equatable, Hashable {
     let mname: String       /// 粉丝牌名称
     
     let timestamp: Int      /// 时间戳
-    let id: UUID = UUID()
-    
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    static func == (l: GiftMSG, r: GiftMSG) -> Bool {
-        return l.id == r.id
+
+    init(giftname: String, giftnum: Int, giftprice: Int, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int) {
+        self.giftname = giftname
+        self.giftnum = giftnum
+        self.giftprice = giftprice
+        self.uid = uid
+        self.uname = uname
+        self.mlevel = mlevel
+        self.mcolor = mcolor
+        self.mname = mname
+        self.timestamp = timestamp
     }
 }
 
-struct EntryMSG: Identifiable, Equatable, Hashable {
+class EntryMSG: BilibiliMSG {
     let uid: Int?           /// uid
     let uname: String       /// 用户名
     
@@ -63,13 +80,13 @@ struct EntryMSG: Identifiable, Equatable, Hashable {
     let mname: String       /// 粉丝牌名称
     
     let timestamp: Int      /// 时间戳
-    let id: UUID = UUID()
     
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-    
-    static func == (l: EntryMSG, r: EntryMSG) -> Bool {
-        return l.id == r.id
+    init(uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int) {
+        self.uid = uid
+        self.uname = uname
+        self.mlevel = mlevel
+        self.mcolor = mcolor
+        self.mname = mname
+        self.timestamp = timestamp
     }
 }
