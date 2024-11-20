@@ -8,54 +8,54 @@
 import SwiftUI
 
 struct MedalView: View {
-    var level: Int                      /// 粉丝等级
-    var color: UInt32                   /// 粉丝牌颜色
-    var name: String                    /// 粉丝版名称
+    let level: Int                      /// 粉丝等级
+    let color: UInt32                   /// 粉丝牌颜色
+    let name: String                    /// 粉丝版名称
     
     var scale: CGFloat = 1.0            /// 缩放倍数
-    var roundSize: CGFloat = 4.0        /// 圆角度数
+    let roundSize: CGFloat = 4.0        /// 圆角度数
     
     var fontname: String = ""           /// 文本字体
-    var fontsize: CGFloat = 16.0        /// 文本字体大小
+    let fontsize: CGFloat = 10.0        /// 文本字体大小
     
     var body: some View {
         RoundedRectangle(cornerSize: CGSize(width: roundSize * scale, height: roundSize * scale))
             .fill(Color(dec: color))
-            .frame(width: 100 * scale, height: 24 * scale, alignment: .center)
+            .frame(minWidth: fontsize, maxWidth: fontsize * scale * 6.75 + scale * 6, minHeight: fontsize, maxHeight: fontsize * scale * 1.5 + scale * 4, alignment: .center)
             .overlay {
                 HStack(alignment: .center) {
-                    Spacer(minLength: 2)
+                    Spacer(minLength: 2 * scale)
                     
                     RoundedRectangle(cornerSize: CGSize(width: roundSize * scale, height: roundSize * scale))
                         .fill(.clear)
-                        .frame(width: 66 * scale, height: 18 * scale, alignment: .center)
+                        .frame(minWidth: fontsize, maxWidth: fontsize * scale * 4, minHeight: fontsize, maxHeight: fontsize * scale * 1.5, alignment: .center)
                         .padding(4 * scale)
-                        .overlay {
+                        .overlay(alignment: .center) {
                             Text(name)
                                 .foregroundStyle(.white)
-                                .font(.custom(fontname, size: fontsize * scale))
+                                .font(.custom(fontname, size: (fontsize + 2) * scale))
                                 .scaledToFill()
                         }
                     
-                    Spacer(minLength: 2)
+                    Spacer(minLength: scale > 1 ? scale : 1)
                     
                     RoundedRectangle(cornerSize: CGSize(width: roundSize * scale, height: roundSize * scale))
                         .fill(.white)
-                        .frame(width: 20 * scale, height: 18 * scale, alignment: .center)
+                        .frame(width: fontsize * scale * 1.5, height: (fontsize + 2) * scale, alignment: .center)
                         .padding(4 * scale)
-                        .overlay {
+                        .overlay(alignment: .center) {
                             Text(String(level))
                                 .foregroundStyle(Color(dec: color))
                                 .font(.custom(fontname, size: fontsize * scale))
                                 .scaledToFill()
                         }
                     
-                    Spacer(minLength: 2)
+                    Spacer(minLength: 2 * scale)
                 }
             }
     }
 }
 
 #Preview {
-    MedalView(level: 10, color: 167777, name: "Medal", scale: 2)
+    MedalView(level: 10, color: 167777, name: "Medal", scale: 4)
 }

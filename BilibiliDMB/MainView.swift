@@ -10,17 +10,23 @@ import SwiftUI
 struct MainView: View {
     @State var liveRoomID: String = "23165114"//"23165114"
     @StateObject var bilicore = BilibiliCore()
+    @Environment(\.colorScheme) var colorScheme
     
     private var m_scale = 1.0
      
     var body: some View {
-        VStack {
+        
+        NavigationSplitView(sidebar: {
+            
+            Text("设置").font(.title)
+            
             HStack {
                 Image(systemName: "house.circle") // 一个图标
                     .imageScale(.large)
                 TextField("直播间ID", text: $liveRoomID) // 输入直播间ID的文本框
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 150, height: 34, alignment: .leading)
+                    .frame(width: 100, height: 34, alignment: .leading)
+                
                 if (bilicore.isConnected) {
                     Button("断开") {
                         bilicore.disconnect()
@@ -32,40 +38,60 @@ struct MainView: View {
                     .buttonStyle(.bordered)
                     .disabled(bilicore.qrcode_status != "登录成功")
                 }
-                
-                Button("登录") {
-                    bilicore.login()
-                }
-                Text(bilicore.qrcode_status)
-                
-            }.padding(20)
-            if (!self.bilicore.qrcode_url.isEmpty) {
-                Image(generateQRCode(from: self.bilicore.qrcode_url, size: 400)!, scale: 1.0, label: Text("Login QR Code"))
             }
-            ScrollViewReader { proxy in
-                List {
-                    ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
-                        if bilicore.bilibiliMSGs[i] is DanmuMSG {
-                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
-                        } else if bilicore.bilibiliMSGs[i] is GiftMSG {
-                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
+            
+            Button(action: {
+                bilicore.login()
+            }, label: {
+                if (self.bilicore.qrcode_url.isEmpty) {
+                    Text("点我获取二维码登录")
+                } else if (bilicore.qrcode_status != "登录成功"){
+                    Image(generateQRCode(from: self.bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
+                }
+            })
+            
+            Text(bilicore.qrcode_status)
+            
+            Spacer()
+                .navigationSplitViewColumnWidth(min: 300, ideal: 300, max: 600)
+        }, detail: {
+            
+            VStack {
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
+                            if bilicore.bilibiliMSGs[i] is DanmuMSG {
+                                DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
+                            } else if bilicore.bilibiliMSGs[i] is GiftMSG {
+                                GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
+                            }
                         }
                     }
+                    .padding(2)
+                    .background(Color.clear)
+                    .scrollContentBackground(.hidden)
+                    .onChange(of: bilicore.bilibiliMSGs, {
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                        }
+                    })
                 }
-                .onChange(of: bilicore.bilibiliMSGs, {
-                    withAnimation(.easeInOut) {
-                        proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
-                    }
-                })
-                .background(Color.clear)
-                .scrollContentBackground(.hidden)
                 
+                Spacer()
+                
+                if (!bilicore.entryMSGs.isEmpty) {
+                    EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0))
+                }
             }
+            .padding(10)
+            .navigationTitle(bilicore.isConnected ? "欢迎光临 \(liveRoomID) 的直播间" : "") /// TODO: use uname
+            .toolbarTitleDisplayMode(.inline)
             
-            if (!bilicore.entryMSGs.isEmpty) {
-                EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: 0, mname: "", timestamp: 0))
-            }
-            
-        }
+        })
+        .background()
     }
+}
+
+#Preview {
+    MainView()
 }

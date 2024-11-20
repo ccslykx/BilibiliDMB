@@ -8,43 +8,53 @@
 import SwiftUI
 
 struct DanmuView: View {
+    @Environment(\.colorScheme) var colorScheme
+    
     var danmuMSG: DanmuMSG
     
     var scale: CGFloat = 1.0
     var fontname: String = ""
-    var fontsize: CGFloat = 24.0
+    let fontsize: CGFloat = 20.0
     
-    init(danmuMSG: DanmuMSG) {
+    init(danmuMSG: DanmuMSG, scale: CGFloat = 1.0) {
         self.danmuMSG = danmuMSG
+        self.scale = scale
     }
     
-    init(content: String, color: UInt32, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat) {
+    init(content: String, color: UInt32, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0) {
         self.danmuMSG = DanmuMSG(content: content, color: color, uid: uid, uname: uname, mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp)
         self.scale = scale
     }
     
+    private func adjustColor(color: UInt32) -> UInt32 {
+        if (color == 0 && colorScheme == .dark) {
+            return 16777215
+        } else if (color == 16777215 && colorScheme == .light) {
+            return 0
+        }
+        return color
+    }
+    
     var body: some View {
-        HStack (alignment: .center) {
+        HStack (alignment: .top) {
             // 时间
             Text(String(danmuMSG.timestamp.timestampToDate()))
-                .foregroundStyle(Color(dec: danmuMSG.color))
+                .foregroundStyle(Color(dec: adjustColor(color: danmuMSG.color)))
                 .font(.custom(fontname, size: fontsize * scale))
+                .frame(alignment: .center)
             
             // 粉丝牌
             if (!danmuMSG.mname.isEmpty) {
-                MedalView(level: danmuMSG.mlevel, color: danmuMSG.mcolor, name: danmuMSG.mname, scale: fontsize / 16.0)
+                MedalView(level: danmuMSG.mlevel, color: danmuMSG.mcolor, name: danmuMSG.mname, scale: scale)
+                    .frame(alignment: .center).padding(2.5)
             }
             
-            // 用户名
-            Text(danmuMSG.uname)
-                .foregroundStyle(Color(dec: danmuMSG.color))
+            // 用户名 和 弹幕信息
+            Text("\(danmuMSG.uname): \(danmuMSG.content)")
+                .foregroundStyle(Color(dec: adjustColor(color: danmuMSG.color)))
                 .font(.custom(fontname, size: (fontsize) * scale))
-            
-            // 弹幕信息
-            Text(danmuMSG.content)
-                .foregroundStyle(Color(dec: danmuMSG.color))
-                .font(.custom(fontname, size: fontsize * scale))
-            }
+                .frame(alignment: .center)
+        }
     }
 }
 
@@ -53,13 +63,15 @@ struct EntryView: View {
     
     var scale: CGFloat = 1.0
     
-    init(entryMSG: EntryMSG) {
+    init(entryMSG: EntryMSG, scale: CGFloat = 1.0) {
         self.entryMSG = entryMSG
+        self.scale = scale
     }
     
-    init(uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int) {
-        entryMSG = EntryMSG(uid: uid, uname: uname
-                            , mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp)
+    init(uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0) {
+        self.entryMSG = EntryMSG(uid: uid, uname: uname
+                            , mlevel: mlevel, mcolor: 0, mname: mname, timestamp: timestamp)
+        self.scale = scale
     }
     
     var body: some View {
@@ -88,7 +100,8 @@ struct SysMsgView: View {
         var now = Int(Date.now.timeIntervalSince1970)
         EntryView(uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now)
 
-        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 1.0)
+        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 2.0)
+        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "ABCDEFG", mlevel: 12, mcolor: 1234567, mname: "ABC", timestamp: now, scale: 1.0)
         SysMsgView(msg: "我是系统提示！")
     }
 }
