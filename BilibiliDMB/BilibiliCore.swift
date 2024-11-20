@@ -192,8 +192,8 @@ class BilibiliCore: ObservableObject {
         let key = SymmetricKey(data: SHA256.hash(data: m_identifier.data(using: .utf8)!).withUnsafeBytes { ptr in Data(ptr)} )
         
         /// Init file path
-        let appDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let cookiesFilePath = appDir.appendingPathComponent("BilibiliDMB/BilibiliDMB.Core")
+        let appDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!.appendingPathComponent("BilibiliDMB")
+        let cookiesFilePath = appDir.appendingPathComponent("BilibiliDMB.Core")
         do {
             try FileManager.default.createDirectory(at: appDir, withIntermediateDirectories: true, attributes: nil)
         } catch {
