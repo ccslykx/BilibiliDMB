@@ -96,6 +96,7 @@ struct SettingView: View {
 struct DisplayView: View {
     @StateObject var bilicore: BilibiliCore
     @Environment(\.colorScheme) var colorScheme
+    @State private var isUserScrolling: Bool = false
     
     var body: some View {
         VStack {
@@ -112,9 +113,24 @@ struct DisplayView: View {
                 .padding(2)
                 .background(colorScheme == .dark ? Color.black : Color.white)
                 .scrollContentBackground(.hidden)
+                .gesture(
+                    DragGesture()
+                        .onChanged { _ in isUserScrolling = true } /// IDK why onEnded not work
+                )
+                .gesture(
+                    TapGesture(count: 2)
+                        .onEnded {
+                            _ in isUserScrolling = false
+                            withAnimation(.easeInOut) {
+                                proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                            }
+                        }
+                )
                 .onChange(of: bilicore.bilibiliMSGs, {
-                    withAnimation(.easeInOut) {
-                        proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                    if (!isUserScrolling) {
+                        withAnimation(.easeInOut) {
+                            proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                        }
                     }
                 })
             }
