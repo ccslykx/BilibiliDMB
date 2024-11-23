@@ -12,13 +12,49 @@ struct MainView: View {
     @StateObject var bilicore = BilibiliCore()
     @Environment(\.colorScheme) var colorScheme
     
-    private var m_scale = 1.0
+    #if os(iOS)
+    @State private var selectedTab = 0
+    #endif
      
     var body: some View {
-        
-        NavigationSplitView(sidebar: {
-            
+        #if os(iOS)
+        TabView(selection: $selectedTab) {
+                SettingView(liveRoomID: liveRoomID, bilicore: bilicore)
+                    .tabItem {
+                        Image(systemName: "gearshape.fill")
+                        Text("设置")
+                    }
+                    .tag(0)
+                DisplayView(bilicore: bilicore)
+                    .tabItem {
+                        Image(systemName: "list.star")
+                        Text("弹幕")
+                    }
+                    .tag(1)
+        }
+        .background(colorScheme == .dark ? Color.black : Color.white)
+        #elseif os(macOS)
+            NavigationSplitView(sidebar: {
+                SettingView(liveRoomID: liveRoomID, bilicore: bilicore)
+                Spacer()
+                    .navigationSplitViewColumnWidth(min: 300, ideal: 300, max: 600)
+            }, detail: {
+                DisplayView(bilicore: bilicore)
+            })
+            .background()
+        #endif
+    }
+}
+
+struct SettingView: View {
+    @State var liveRoomID: String = "23165114"//"23165114"
+    @StateObject var bilicore: BilibiliCore
+    
+    var body: some View {
+        VStack {
+            #if os(macOS)
             Text("设置").font(.title)
+            #endif
             
             HStack {
                 Image(systemName: "house.circle") // 一个图标
@@ -53,42 +89,46 @@ struct MainView: View {
             Text(bilicore.qrcode_status)
             
             Spacer()
-                .navigationSplitViewColumnWidth(min: 300, ideal: 300, max: 600)
-        }, detail: {
-            
-            VStack {
-                ScrollViewReader { proxy in
-                    List {
-                        ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
-                            if bilicore.bilibiliMSGs[i] is DanmuMSG {
-                                DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
-                            } else if bilicore.bilibiliMSGs[i] is GiftMSG {
-                                GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
-                            }
+        }
+    }
+}
+
+struct DisplayView: View {
+    @StateObject var bilicore: BilibiliCore
+    @Environment(\.colorScheme) var colorScheme
+    
+    var body: some View {
+        VStack {
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
+                        if bilicore.bilibiliMSGs[i] is DanmuMSG {
+                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
+                        } else if bilicore.bilibiliMSGs[i] is GiftMSG {
+                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
                         }
                     }
-                    .padding(2)
-                    .background(Color.clear)
-                    .scrollContentBackground(.hidden)
-                    .onChange(of: bilicore.bilibiliMSGs, {
-                        withAnimation(.easeInOut) {
-                            proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
-                        }
-                    })
                 }
-                
-                Spacer()
-                
-                if (!bilicore.entryMSGs.isEmpty) {
-                    EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0))
-                }
+                .padding(2)
+                .background(colorScheme == .dark ? Color.black : Color.white)
+                .scrollContentBackground(.hidden)
+                .onChange(of: bilicore.bilibiliMSGs, {
+                    withAnimation(.easeInOut) {
+                        proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                    }
+                })
             }
-            .padding(10)
-            .navigationTitle(bilicore.isConnected ? "欢迎光临 \(liveRoomID) 的直播间" : "") /// TODO: use uname
-            .toolbarTitleDisplayMode(.inline)
             
-        })
-        .background()
+            Spacer()
+            
+            if (!bilicore.entryMSGs.isEmpty) {
+                EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0))
+            }
+        }
+        .padding(10)
+        .navigationTitle(bilicore.isConnected && !bilicore.streamer_name.isEmpty ? "欢迎光临 \(bilicore.streamer_name) 的直播间" : "") /// TODO: use uname
+        .toolbarTitleDisplayMode(.inline)
+        
     }
 }
 

@@ -21,6 +21,8 @@ class BilibiliCore: ObservableObject {
     @Published var bilibiliMSGs: [BilibiliMSG] = []
     @Published var entryMSGs: [EntryMSG] = []
     
+    @Published var streamer_name: String = ""   /// TODO
+    
     private var m_qrcode_key: String = ""
     private var m_cookie: HTTPCookie! = nil
     private var m_uid: String = "0"              /// 登录用户的uid
