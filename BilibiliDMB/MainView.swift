@@ -72,54 +72,68 @@ struct SettingView: View {
                     .frame(width: 100, height: 34, alignment: .leading)
                     .disabled(bilicore.isConnected)
                 
-                if (bilicore.isConnected) {
+                if (bilicore.bili_status == .CONNECTED) {
                     Button("断开") {
                         bilicore.disconnect()
                     }.buttonStyle(.bordered)
                 } else {
-                    Button("连接") {
-                        bilicore.connect(roomid: liveRoomID)
-                    }
+                    Button(action: { bilicore.connect(roomid: liveRoomID) }, label: {
+                        if (bilicore.bili_status == .CONNECTING) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .padding(.trailing, 4)
+                                .frame(maxWidth: 10, maxHeight: 10)
+                            #if os(macOS)
+                                .scaleEffect(0.4)
+                            #endif
+                            Text("连接中")
+                        } else {
+                            Text("连接")
+                        }
+                    })
                     .buttonStyle(.bordered)
-                    .disabled(bilicore.qrcode_status != "登录成功")
+                    .disabled(bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue)
                 }
             }
             .padding(20)
             
-            Button(action: {
-                bilicore.login()
-            }, label: {
-                if (bilicore.qrcode_url.isEmpty && bilicore.qrcode_status != "登录成功") {
-                    Text("点我获取二维码登录")
-                } else if (bilicore.qrcode_status != "登录成功") {
-                    Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
-                }
-            })
-            
             Text(bilicore.qrcode_status)
             
+            if (bilicore.bili_status == .NOT_LOGGEDIN) {
+                Button("点我获取二维码登录") { bilicore.login() }
+            } else if (bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue ) {
+                Button(action: { bilicore.login() }, label: { Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
+                })
+                .buttonStyle(.plain)
+            } else {
+                Button("注销登录") { bilicore.logout() }
+            }
+                        
             Spacer()
             
-            VStack {
-                HStack {
-                    Text("缩放: \(scale, specifier: "%.1f")")
-                        .frame(minWidth: 120, alignment: .leading)
-                    Slider(value: $scale, in: 0.1...4, step: 0.1)
+            if (bilicore.bili_status != .NOT_SCANNED &&
+                bilicore.bili_status != .WAIT_SACN_CONFIRM &&
+                bilicore.bili_status != .QRCODE_TIMEOUT) {
+                VStack {
+                    HStack {
+                        Text("缩放: \(scale, specifier: "%.1f")")
+                            .frame(minWidth: 120, alignment: .leading)
+                        Slider(value: $scale, in: 0.1...4, step: 0.1)
+                    }
+                    
+                    Toggle(isOn: $is_display_time) {
+                        Text("显示时间")
+                    }
+                    
+                    Toggle(isOn: $is_display_medal) {
+                        Text("显示粉丝牌")
+                    }
+                    
+                    DanmuView(content: "我是一条测试弹幕", color: 0, uid: 0, uname: "用户名", mlevel: 0, mcolor: 0, mname: "粉丝牌", timestamp: Int(Date.now.timeIntervalSince1970), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
                 }
-
-                Toggle(isOn: $is_display_time) {
-                    Text("显示时间")
-                }
-            
-                Toggle(isOn: $is_display_medal) {
-                    Text("显示粉丝牌")
-                }
-            }
-            .padding(.horizontal, 60)
-            
-            DanmuView(content: "我是一条测试弹幕", color: 0, uid: 0, uname: "用户名", mlevel: 0, mcolor: 0, mname: "粉丝牌", timestamp: Int(Date.now.timeIntervalSince1970), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
                 .padding(.horizontal, 60)
-            
+            }
+
             Spacer()
         }
     }

@@ -13,7 +13,19 @@ import SwiftBrotli
 import CryptoKit
 import Security
 
+enum BiliStatus: Int {
+    case NOT_LOGGEDIN = 0
+    case NOT_SCANNED = 1
+    case WAIT_SACN_CONFIRM = 2
+    case QRCODE_TIMEOUT = 3
+    case LOGGEDIN = 4
+    case CONNECTING = 5
+    case DISCONNECTED = 6
+    case CONNECTED = 7
+}
+
 class BilibiliCore: ObservableObject {
+    @Published var bili_status: BiliStatus = .NOT_LOGGEDIN
     @Published var qrcode_url: String = ""      /// 二维码对应的链接
     @Published var qrcode_status: String = ""   /// 二维码的扫描状态
     @Published var isConnected: Bool = false       /// 当前是否连接
@@ -61,6 +73,7 @@ class BilibiliCore: ObservableObject {
         let key = SymmetricKey(data: SHA256.hash(data: m_identifier.data(using: .utf8)!).withUnsafeBytes { ptr in Data(ptr)} )
         if (loadCookieFromFile(key: key)) {
             qrcode_status = "登录成功"
+            bili_status = .LOGGEDIN
             /// TODO: 检测Cookie是否过期
             return
         }
@@ -80,7 +93,7 @@ class BilibiliCore: ObservableObject {
             let qrcode_key = json!["data"]["qrcode_key"].stringValue
             self.qrcode_url = url
             self.m_qrcode_key = qrcode_key
-//            LOG("m_qrcode_key: " + qrcode_key)
+            self.bili_status = .NOT_SCANNED
         }
         task.resume()
 
@@ -94,11 +107,41 @@ class BilibiliCore: ObservableObject {
         self.m_loginTimer.fire()
     }
     
+    func logout() {
+        qrcode_url = ""
+        qrcode_status = ""
+        isConnected = false
+        
+        m_qrcode_key = ""
+        m_cookie = nil
+        m_uid = "0"
+        m_token = ""
+        
+        if (m_heartbeatTimer != nil) {
+            m_heartbeatTimer!.invalidate()
+            m_heartbeatTimer = nil
+        }
+        if (m_initRoomInfoTimer != nil) {
+            m_initRoomInfoTimer!.invalidate()
+            m_initRoomInfoTimer = nil
+        }
+        if (m_loginTimer != nil) {
+            m_loginTimer!.invalidate()
+            m_loginTimer = nil
+        }
+
+        m_loginDate = nil
+        
+        self.bili_status = .NOT_LOGGEDIN
+        
+        deleteCookieFile()
+    }
+    
     /// 执行`login`函数后，检测用户扫码登录状态
     private func getLoginStatus() {
         if (self.m_loginTimer != nil && m_loginDate != nil) {
             let interval = Date().timeIntervalSince(self.m_loginDate!)
-            LOG(String(interval))
+
             if (interval < 2) {
                 return
             }
@@ -107,6 +150,7 @@ class BilibiliCore: ObservableObject {
                 let warn: String = "扫码登录超时，请刷新二维码"
                 LOG(warn, .WARNING)
                 self.qrcode_status = warn
+                self.bili_status = .QRCODE_TIMEOUT
                 return
             }
         }
@@ -157,6 +201,19 @@ class BilibiliCore: ObservableObject {
                     self.m_loginTimer.invalidate()
                 }
                 self.qrcode_status = "登录成功"
+                self.bili_status = .LOGGEDIN
+                break
+                
+            case 86038:
+                self.bili_status = .QRCODE_TIMEOUT
+                break
+                
+            case 86090:
+                self.bili_status = .WAIT_SACN_CONFIRM
+                break
+                
+            case 86101:
+                self.bili_status = .NOT_SCANNED
                 break
             
             default:
@@ -248,6 +305,21 @@ class BilibiliCore: ObservableObject {
         } catch {
             LOG("Failed to load cookies: \(error.localizedDescription)")
             return false
+        }
+    }
+    
+    private func deleteCookieFile() {
+        let appDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        let cookiesFilePath = appDir.appendingPathComponent("BilibiliDMB/BilibiliDMB.Core")
+        do {
+            if (FileManager.default.fileExists(atPath: cookiesFilePath.path)) {
+                try (FileManager.default.removeItem(at: cookiesFilePath))
+                LOG("删除Cookies成功")
+            } else {
+                LOG("Cookies文件: \(cookiesFilePath.absoluteString) 不存在", .WARNING)
+            }
+        } catch {
+            LOG("删除Cookies失败：\(error.localizedDescription)")
         }
     }
     
@@ -357,6 +429,8 @@ class BilibiliCore: ObservableObject {
     }
     
     func connect(roomid: String) {
+        self.bili_status = .CONNECTING
+        
         m_roomid = roomid
         LOG("初始化房间信息...")
         initRoomInfo()
@@ -402,6 +476,7 @@ class BilibiliCore: ObservableObject {
         }
         m_socket!.disconnect()
         isConnected = false
+        self.bili_status = .DISCONNECTED
         if (m_heartbeatTimer != nil)
         {
             m_heartbeatTimer?.invalidate()
@@ -595,6 +670,7 @@ extension BilibiliCore: WebSocketDelegate {
             m_heartbeatTimer?.fire()
             
             self.isConnected = true
+            self.bili_status = .CONNECTED
             LOG("连接成功")
             if (m_initRoomInfoTimer != nil) {
                 self.m_initRoomInfoTimer?.invalidate()
