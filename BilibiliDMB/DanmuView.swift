@@ -49,7 +49,7 @@ struct DanmuView: View {
     }
     
     var body: some View {
-        HStack (alignment: .top) {
+        HStack (alignment: .center) {
             // 时间
             if (is_display_time) {
                 Text(String(danmuMSG.timestamp.timestampToDate()))
@@ -124,8 +124,8 @@ struct SysMsgView: View {
         var now = Int(Date.now.timeIntervalSince1970)
         EntryView(uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now)
 
-        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 2.0)
-        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "ABCDEFG", mlevel: 12, mcolor: 1234567, mname: "ABC", timestamp: now, scale: 1.0)
+        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 0.2)
+        DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "ABCDEFG", mlevel: 12, mcolor: 1234567, mname: "ABC", timestamp: now, scale: 0.5)
         SysMsgView(msg: "我是系统提示！")
     }
 }

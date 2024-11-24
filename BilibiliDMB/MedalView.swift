@@ -21,14 +21,14 @@ struct MedalView: View {
     var body: some View {
         RoundedRectangle(cornerSize: CGSize(width: roundSize * scale, height: roundSize * scale))
             .fill(Color(dec: color))
-            .frame(minWidth: fontsize, maxWidth: fontsize * scale * 6.75 + scale * 6, minHeight: fontsize, maxHeight: fontsize * scale * 1.5 + scale * 4, alignment: .center)
+            .frame(maxWidth: fontsize * scale * 6.75 + scale * 6, maxHeight: fontsize * scale * 1.5 + scale * 4, alignment: .center)
             .overlay {
                 HStack(alignment: .center) {
                     Spacer(minLength: 2 * scale)
                     
                     RoundedRectangle(cornerSize: CGSize(width: roundSize * scale, height: roundSize * scale))
                         .fill(.clear)
-                        .frame(minWidth: fontsize, maxWidth: fontsize * scale * 4, minHeight: fontsize, maxHeight: fontsize * scale * 1.5, alignment: .center)
+                        .frame(maxWidth: fontsize * scale * 4, maxHeight: fontsize * scale * 1.5, alignment: .center)
                         .padding(4 * scale)
                         .overlay(alignment: .center) {
                             Text(name)

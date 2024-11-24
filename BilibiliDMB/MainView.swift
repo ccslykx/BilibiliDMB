@@ -17,26 +17,21 @@ struct MainView: View {
     @AppStorage("bili_danmu_fontname") private var fontname: String = ""
     @AppStorage("bili_danmu_displayTime") private var is_display_time: Bool = true
     @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
-    
-    #if os(iOS)
-    @State private var selectedTab = 0
-    #endif
      
     var body: some View {
         #if os(iOS)
-        TabView(selection: $selectedTab) {
-            SettingView(bilicore: bilicore)
-                    .tabItem {
-                        Image(systemName: "gearshape.fill")
-                        Text("设置")
-                    }
-                    .tag(0)
+        TabView {
             DisplayView(bilicore: bilicore)
                     .tabItem {
                         Image(systemName: "list.star")
                         Text("弹幕")
                     }
-                    .tag(1)
+
+            SettingView(bilicore: bilicore)
+                    .tabItem {
+                        Image(systemName: "gearshape.fill")
+                        Text("设置")
+                    }
         }
         .background(colorScheme == .dark ? Color.black : Color.white)
         #elseif os(macOS)
@@ -75,6 +70,7 @@ struct SettingView: View {
                 TextField("直播间ID", text: $liveRoomID) // 输入直播间ID的文本框
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 100, height: 34, alignment: .leading)
+                    .disabled(bilicore.isConnected)
                 
                 if (bilicore.isConnected) {
                     Button("断开") {
@@ -119,7 +115,10 @@ struct SettingView: View {
                     Text("显示粉丝牌")
                 }
             }
-            .padding(60)
+            .padding(.horizontal, 60)
+            
+            DanmuView(content: "我是一条测试弹幕", color: 0, uid: 0, uname: "用户名", mlevel: 0, mcolor: 0, mname: "粉丝牌", timestamp: Int(Date.now.timeIntervalSince1970), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
+                .padding(.horizontal, 60)
             
             Spacer()
         }
@@ -138,52 +137,58 @@ struct DisplayView: View {
     @State private var isUserScrolling: Bool = false
     
     var body: some View {
-        VStack {
-            ScrollViewReader { proxy in
-                List {
-                    ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
-                        if bilicore.bilibiliMSGs[i] is DanmuMSG {
-                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
-                        } else if bilicore.bilibiliMSGs[i] is GiftMSG {
-                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
+        if (!bilicore.isConnected) {
+            Label("先去设置界面连接到直播间吧～", systemImage: "info.bubble")
+                .font(.title)
+                .padding(40)
+        } else {
+            VStack {
+                ScrollViewReader { proxy in
+                    List {
+                        ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
+                            if bilicore.bilibiliMSGs[i] is DanmuMSG {
+                                DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
+                            } else if bilicore.bilibiliMSGs[i] is GiftMSG {
+                                GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
+                            }
                         }
                     }
-                }
-                .padding(2)
-                .background(colorScheme == .dark ? Color.black : Color.white)
-                .scrollContentBackground(.hidden)
-                .gesture(
-                    DragGesture()
-                        .onChanged { _ in isUserScrolling = true } /// IDK why onEnded not work
-                )
-                .gesture(
-                    TapGesture(count: 2)
-                        .onEnded {
-                            _ in isUserScrolling = false
+                    .padding(2)
+                    .background(colorScheme == .dark ? Color.black : Color.white)
+                    .scrollContentBackground(.hidden)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { _ in isUserScrolling = true } /// IDK why onEnded not work
+                    )
+                    .gesture(
+                        TapGesture(count: 2)
+                            .onEnded {
+                                _ in isUserScrolling = false
+                                withAnimation(.easeInOut) {
+                                    proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
+                                }
+                            }
+                    )
+                    .onChange(of: bilicore.bilibiliMSGs, {
+                        if (!isUserScrolling) {
                             withAnimation(.easeInOut) {
                                 proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
                             }
                         }
-                )
-                .onChange(of: bilicore.bilibiliMSGs, {
-                    if (!isUserScrolling) {
-                        withAnimation(.easeInOut) {
-                            proxy.scrollTo(bilicore.bilibiliMSGs.indices.last)
-                        }
-                    }
-                })
+                    })
+                }
+                
+                Spacer()
+                
+                if (!bilicore.entryMSGs.isEmpty) {
+                    EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
+                }
             }
+            .padding(10)
+            .navigationTitle(bilicore.isConnected && !bilicore.streamer_name.isEmpty ? "欢迎光临 \(bilicore.streamer_name) 的直播间" : "") /// TODO: use uname
+            .toolbarTitleDisplayMode(.inline)
             
-            Spacer()
-            
-            if (!bilicore.entryMSGs.isEmpty) {
-                EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
-            }
         }
-        .padding(10)
-        .navigationTitle(bilicore.isConnected && !bilicore.streamer_name.isEmpty ? "欢迎光临 \(bilicore.streamer_name) 的直播间" : "") /// TODO: use uname
-        .toolbarTitleDisplayMode(.inline)
-        
     }
 }
 
