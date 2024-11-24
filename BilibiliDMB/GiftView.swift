@@ -14,27 +14,39 @@ struct GiftView: View {
     
     var scale: CGFloat = 1.0
     var fontname: String = ""
+    var is_display_time: Bool = true
+    var is_display_medal: Bool = true
+    
     let fontsize: CGFloat = 20.0
     
-    init(giftMSG: GiftMSG, scale: CGFloat = 1.0) {
+    init(giftMSG: GiftMSG, scale: CGFloat = 1.0, fontname: String = "",
+         is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.giftMSG = giftMSG
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
-    init(giftname: String, giftnum: Int, giftprice: Int, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0) {
+    init(giftname: String, giftnum: Int, giftprice: Int, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0, fontname: String = "",
+         is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.giftMSG = GiftMSG(giftname: giftname, giftnum: giftnum, giftprice: giftprice, uid: uid, uname: uname, mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp)
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
     var body: some View {
         HStack (alignment: .center) {
             // 时间
-            Text(String(giftMSG.timestamp.timestampToDate()))
-                .foregroundStyle(Color(dec: colorScheme == .dark ? 16777215 : 0))
-                .font(.custom(fontname, size: fontsize * scale))
-            
+            if (is_display_time) {
+                Text(String(giftMSG.timestamp.timestampToDate()))
+                    .foregroundStyle(Color(dec: colorScheme == .dark ? 16777215 : 0))
+                    .font(.custom(fontname, size: fontsize * scale))
+            }
             // 粉丝牌
-            if (!giftMSG.mname.isEmpty) {
+            if (!giftMSG.mname.isEmpty && is_display_medal) {
                 MedalView(level: giftMSG.mlevel, color: giftMSG.mcolor, name: giftMSG.mname, scale: scale)
             }
             

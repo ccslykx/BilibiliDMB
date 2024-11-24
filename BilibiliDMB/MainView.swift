@@ -8,9 +8,15 @@
 import SwiftUI
 
 struct MainView: View {
-    @State var liveRoomID: String = "23165114"//"23165114"
-    @StateObject var bilicore = BilibiliCore()
+    @StateObject var bilicore: BilibiliCore = BilibiliCore()
+    
     @Environment(\.colorScheme) var colorScheme
+    
+    @AppStorage("bili_core_liveroomid") private var liveRoomID: String = "23165114"
+    @AppStorage("bili_danmu_scale") private var scale: Double = 1.0
+    @AppStorage("bili_danmu_fontname") private var fontname: String = ""
+    @AppStorage("bili_danmu_displayTime") private var is_display_time: Bool = true
+    @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
     
     #if os(iOS)
     @State private var selectedTab = 0
@@ -19,13 +25,13 @@ struct MainView: View {
     var body: some View {
         #if os(iOS)
         TabView(selection: $selectedTab) {
-                SettingView(liveRoomID: liveRoomID, bilicore: bilicore)
+            SettingView(bilicore: bilicore)
                     .tabItem {
                         Image(systemName: "gearshape.fill")
                         Text("设置")
                     }
                     .tag(0)
-                DisplayView(bilicore: bilicore)
+            DisplayView(bilicore: bilicore)
                     .tabItem {
                         Image(systemName: "list.star")
                         Text("弹幕")
@@ -35,7 +41,7 @@ struct MainView: View {
         .background(colorScheme == .dark ? Color.black : Color.white)
         #elseif os(macOS)
             NavigationSplitView(sidebar: {
-                SettingView(liveRoomID: liveRoomID, bilicore: bilicore)
+                SettingView(bilicore: bilicore)
                 Spacer()
                     .navigationSplitViewColumnWidth(min: 300, ideal: 300, max: 600)
             }, detail: {
@@ -47,8 +53,15 @@ struct MainView: View {
 }
 
 struct SettingView: View {
-    @State var liveRoomID: String = "23165114"//"23165114"
-    @StateObject var bilicore: BilibiliCore
+    @State var bilicore: BilibiliCore
+    
+    @Environment(\.colorScheme) var colorScheme
+    
+    @AppStorage("bili_core_liveroomid") private var liveRoomID: String = ""
+    @AppStorage("bili_danmu_scale") private var scale: Double = 1.0
+    @AppStorage("bili_danmu_fontname") private var fontname: String = ""
+    @AppStorage("bili_danmu_displayTime") private var is_display_time: Bool = true
+    @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
     
     var body: some View {
         VStack {
@@ -75,18 +88,38 @@ struct SettingView: View {
                     .disabled(bilicore.qrcode_status != "登录成功")
                 }
             }
+            .padding(20)
             
             Button(action: {
                 bilicore.login()
             }, label: {
-                if (self.bilicore.qrcode_url.isEmpty) {
+                if (bilicore.qrcode_url.isEmpty && bilicore.qrcode_status != "登录成功") {
                     Text("点我获取二维码登录")
-                } else if (bilicore.qrcode_status != "登录成功"){
-                    Image(generateQRCode(from: self.bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
+                } else if (bilicore.qrcode_status != "登录成功") {
+                    Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
                 }
             })
             
             Text(bilicore.qrcode_status)
+            
+            Spacer()
+            
+            VStack {
+                HStack {
+                    Text("缩放: \(scale, specifier: "%.1f")")
+                        .frame(minWidth: 120, alignment: .leading)
+                    Slider(value: $scale, in: 0.1...4, step: 0.1)
+                }
+
+                Toggle(isOn: $is_display_time) {
+                    Text("显示时间")
+                }
+            
+                Toggle(isOn: $is_display_medal) {
+                    Text("显示粉丝牌")
+                }
+            }
+            .padding(60)
             
             Spacer()
         }
@@ -94,8 +127,14 @@ struct SettingView: View {
 }
 
 struct DisplayView: View {
-    @StateObject var bilicore: BilibiliCore
+    @State var bilicore: BilibiliCore
+    
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage("bili_danmu_scale") private var scale: Double = 1.0
+    @AppStorage("bili_danmu_fontname") private var fontname: String = ""
+    @AppStorage("bili_danmu_displayTime") private var is_display_time: Bool = true
+    @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
+    
     @State private var isUserScrolling: Bool = false
     
     var body: some View {
@@ -104,9 +143,9 @@ struct DisplayView: View {
                 List {
                     ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
                         if bilicore.bilibiliMSGs[i] is DanmuMSG {
-                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!).id(i)
+                            DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
                         } else if bilicore.bilibiliMSGs[i] is GiftMSG {
-                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!).id(i)
+                            GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
                         }
                     }
                 }
@@ -138,7 +177,7 @@ struct DisplayView: View {
             Spacer()
             
             if (!bilicore.entryMSGs.isEmpty) {
-                EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0))
+                EntryView(entryMSG: bilicore.entryMSGs.last ?? EntryMSG(uid: 0, uname: "", mlevel: 0, mcolor: colorScheme == .dark ? 16777215 : 0, mname: "", timestamp: 0), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
             }
         }
         .padding(10)

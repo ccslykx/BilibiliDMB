@@ -14,16 +14,29 @@ struct DanmuView: View {
     
     var scale: CGFloat = 1.0
     var fontname: String = ""
+    var is_display_time: Bool = true
+    var is_display_medal: Bool = true
+    
     let fontsize: CGFloat = 20.0
     
-    init(danmuMSG: DanmuMSG, scale: CGFloat = 1.0) {
+    init(danmuMSG: DanmuMSG, scale: CGFloat = 1.0, fontname: String = "",
+         is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.danmuMSG = danmuMSG
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
-    init(content: String, color: UInt32, uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0) {
+    init(content: String, color: UInt32, uid: Int?, uname: String,
+         mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int,
+         scale: CGFloat = 1.0,  fontname: String = "",
+         is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.danmuMSG = DanmuMSG(content: content, color: color, uid: uid, uname: uname, mlevel: mlevel, mcolor: mcolor, mname: mname, timestamp: timestamp)
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
     private func adjustColor(color: UInt32) -> UInt32 {
@@ -38,13 +51,15 @@ struct DanmuView: View {
     var body: some View {
         HStack (alignment: .top) {
             // 时间
-            Text(String(danmuMSG.timestamp.timestampToDate()))
-                .foregroundStyle(Color(dec: adjustColor(color: danmuMSG.color)))
-                .font(.custom(fontname, size: fontsize * scale))
-                .frame(alignment: .center)
+            if (is_display_time) {
+                Text(String(danmuMSG.timestamp.timestampToDate()))
+                    .foregroundStyle(Color(dec: adjustColor(color: danmuMSG.color)))
+                    .font(.custom(fontname, size: fontsize * scale))
+                    .frame(alignment: .center)
+            }
             
             // 粉丝牌
-            if (!danmuMSG.mname.isEmpty) {
+            if (!danmuMSG.mname.isEmpty && is_display_medal) {
                 MedalView(level: danmuMSG.mlevel, color: danmuMSG.mcolor, name: danmuMSG.mname, scale: scale)
                     .frame(alignment: .center).padding(2.5)
             }
@@ -62,20 +77,29 @@ struct EntryView: View {
     var entryMSG: EntryMSG
     
     var scale: CGFloat = 1.0
+    var fontname: String = ""
+    var is_display_time: Bool = true
+    var is_display_medal: Bool = true
     
-    init(entryMSG: EntryMSG, scale: CGFloat = 1.0) {
+    init(entryMSG: EntryMSG, scale: CGFloat = 1.0, fontname: String = "", is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.entryMSG = entryMSG
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
-    init(uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0) {
+    init(uid: Int?, uname: String, mlevel: Int, mcolor: UInt32, mname: String, timestamp: Int, scale: CGFloat = 1.0, fontname: String = "", is_display_time: Bool = true, is_display_medal: Bool = true) {
         self.entryMSG = EntryMSG(uid: uid, uname: uname
                             , mlevel: mlevel, mcolor: 0, mname: mname, timestamp: timestamp)
         self.scale = scale
+        self.fontname = fontname
+        self.is_display_time = is_display_time
+        self.is_display_medal = is_display_medal
     }
     
     var body: some View {
-        DanmuView(content: "进入了直播间", color: 0, uid: entryMSG.uid, uname: entryMSG.uname, mlevel: entryMSG.mlevel, mcolor: entryMSG.mcolor, mname: entryMSG.mname, timestamp: entryMSG.timestamp, scale: scale)
+        DanmuView(content: "进入了直播间", color: 0, uid: entryMSG.uid, uname: entryMSG.uname, mlevel: entryMSG.mlevel, mcolor: entryMSG.mcolor, mname: entryMSG.mname, timestamp: entryMSG.timestamp, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
     }
 }
 
