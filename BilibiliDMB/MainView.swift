@@ -49,6 +49,7 @@ struct MainView: View {
 
 struct SettingView: View {
     @State var bilicore: BilibiliCore
+    @State private var show_logout_alert: Bool = false
     
     @Environment(\.colorScheme) var colorScheme
     
@@ -106,7 +107,14 @@ struct SettingView: View {
                 })
                 .buttonStyle(.plain)
             } else {
-                Button("注销登录") { bilicore.logout() }
+                Button("注销登录") { show_logout_alert = true }
+                    .foregroundColor(.red)
+                    .alert("警告", isPresented: $show_logout_alert) {
+                        Button("确认", role: .destructive) { bilicore.logout() }
+                        Button("取消", role: .cancel) {}
+                    } message: {
+                        Text("请确认是否要注销登录？这会删除本地保存的Cookies")
+                    }
             }
                         
             Spacer()
