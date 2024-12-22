@@ -90,3 +90,17 @@ class EntryMSG: BilibiliMSG {
         self.timestamp = timestamp
     }
 }
+
+struct RoomInfo {
+    var uid: String = ""
+    var room_id: String = ""
+    var title: String = ""
+    var cover: String = "" /// URL
+    var live_start_time: UInt = 0
+    var area_name: String = ""
+    var parent_area_name: String = ""
+    var online: UInt = 0
+    
+    var uname: String = ""
+    var face: String = "" /// URL
+}

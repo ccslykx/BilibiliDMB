@@ -65,43 +65,58 @@ struct SettingView: View {
             Text("设置").font(.title)
             #endif
             
-            HStack {
-                Image(systemName: "house.circle") // 一个图标
-                    .imageScale(.large)
-                TextField("直播间ID", text: $liveRoomID) // 输入直播间ID的文本框
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 100, height: 34, alignment: .leading)
-                    .disabled(bilicore.isConnected)
-                
-                if (bilicore.bili_status == .CONNECTED) {
-                    Button("断开") {
-                        bilicore.disconnect()
-                    }.buttonStyle(.bordered)
-                } else {
-                    Button(action: { bilicore.connect(roomid: liveRoomID) }, label: {
-                        if (bilicore.bili_status == .CONNECTING) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .padding(.trailing, 4)
-                                .frame(maxWidth: 10, maxHeight: 10)
-                            #if os(macOS)
-                                .scaleEffect(0.4)
-                            #endif
-                            Text("连接中")
+            Spacer(minLength: 60) /// TODO: Change to Logo
+            
+            VStack {
+                Text(bilicore.qrcode_status)
+                    .frame(minWidth: 80, minHeight: 30)
+                    .foregroundStyle( { () -> Color in
+                        if (bilicore.bili_status == .CONNECTED) {
+                            return Color.green
+                        } else if (bilicore.bili_status == .QRCODE_TIMEOUT) {
+                            return Color.red
                         } else {
-                            Text("连接")
+                            return Color.primary
                         }
-                    })
-                    .buttonStyle(.bordered)
-                    .disabled(bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue)
+                    }() )
+                
+                HStack {
+                    Image(systemName: "house.circle") // 一个图标
+                        .imageScale(.large)
+                    TextField("直播间ID", text: $liveRoomID) // 输入直播间ID的文本框
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100, height: 34, alignment: .leading)
+                        .disabled(bilicore.isConnected)
+                    
+                    if (bilicore.bili_status == .CONNECTED) {
+                        Button("断开") {
+                            bilicore.disconnect()
+                        }.buttonStyle(.bordered)
+                    } else {
+                        Button(action: { bilicore.connect(roomid: liveRoomID) }, label: {
+                            if (bilicore.bili_status == .CONNECTING) {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle())
+                                    .padding(.trailing, 4)
+                                    .frame(maxWidth: 10, maxHeight: 10)
+                                #if os(macOS)
+                                    .scaleEffect(0.4)
+                                #endif
+                                Text("连接中")
+                            } else {
+                                Text("连接")
+                            }
+                        })
+                        .buttonStyle(.bordered)
+                        .disabled(bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue)
+                    }
                 }
             }
-            .padding(20)
-            
-            Text(bilicore.qrcode_status)
             
             if (bilicore.bili_status == .NOT_LOGGEDIN) {
                 Button("点我获取二维码登录") { bilicore.login() }
+                    .buttonStyle(.bordered)
+                    .padding(20)
             } else if (bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue ) {
                 Button(action: { bilicore.login() }, label: { Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
                 })
@@ -109,6 +124,8 @@ struct SettingView: View {
             } else {
                 Button("注销登录") { show_logout_alert = true }
                     .foregroundColor(.red)
+                    .buttonStyle(.bordered)
+                    .padding(20)
                     .alert("警告", isPresented: $show_logout_alert) {
                         Button("确认", role: .destructive) { bilicore.logout() }
                         Button("取消", role: .cancel) {}
@@ -165,6 +182,41 @@ struct DisplayView: View {
                 .padding(40)
         } else {
             VStack {
+                if (bilicore.roomInfo.uname != "") {
+                    HStack {
+                        /// 头像
+                        if (!bilicore.roomInfo.face.isEmpty) {
+                            AsyncImage(url: URL(string: bilicore.roomInfo.face)!) { image in
+                                image
+                                    .resizable(resizingMode: .stretch)
+                                    .scaledToFit()
+                                    .frame(width: 64.0 * scale, height: 64.0 * scale)
+                            } placeholder: {
+                                Color.clear
+                            }
+                        }
+                        
+                        VStack(alignment: .leading) {
+                            HStack {
+                                /// 主播用户名
+                                Text(bilicore.roomInfo.uname)
+                                    .font(.title2)
+                                /// 一级分区/二级分区
+                                Text("\(bilicore.roomInfo.parent_area_name)/\(bilicore.roomInfo.area_name)")
+                                    .foregroundStyle(.gray)
+                                    .font(.title2)
+                            }
+                            /// 直播间标题
+                            Text(bilicore.roomInfo.title)
+                                .font(.title)
+                        }
+                        
+                        Spacer()
+                        
+//                        Text("在线人数：\(bilicore.roomInfo.online)")
+                    }
+                }
+                
                 ScrollViewReader { proxy in
                     List {
                         ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
@@ -207,7 +259,7 @@ struct DisplayView: View {
                 }
             }
             .padding(10)
-            .navigationTitle(bilicore.isConnected && !bilicore.streamer_name.isEmpty ? "欢迎光临 \(bilicore.streamer_name) 的直播间" : "") /// TODO: use uname
+            .navigationTitle(bilicore.isConnected && !bilicore.roomInfo.uname.isEmpty ? "欢迎光临 \(bilicore.roomInfo.uname) 的直播间" : "") /// TODO: use uname
             .toolbarTitleDisplayMode(.inline)
             
         }

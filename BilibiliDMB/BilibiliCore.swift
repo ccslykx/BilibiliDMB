@@ -33,7 +33,7 @@ class BilibiliCore: ObservableObject {
     @Published var bilibiliMSGs: [BilibiliMSG] = []
     @Published var entryMSGs: [EntryMSG] = []
     
-    @Published var streamer_name: String = ""   /// TODO
+    @Published var roomInfo: RoomInfo = RoomInfo()
     
     private var m_qrcode_key: String = ""
     private var m_cookie: HTTPCookie! = nil
@@ -347,10 +347,26 @@ class BilibiliCore: ObservableObject {
             }
             
             let json = try? JSON(data: data!)
-            let result = json!["data"]["room_info"]["room_id"]
-            let realRoomid: String = result.stringValue
-            if (!realRoomid.isEmpty) {
-                m_realRoomid = realRoomid
+            
+            /// assign `roomInfo`
+            let room_info = json!["data"]["room_info"]
+            let anchor_info = json!["data"]["anchor_info"]
+            roomInfo.uid = room_info["uid"].stringValue
+            roomInfo.room_id = room_info["room_id"].stringValue
+            roomInfo.title = room_info["title"].stringValue
+            roomInfo.area_name = room_info["area_name"].stringValue
+            roomInfo.parent_area_name = room_info["parent_area_name"].stringValue
+            roomInfo.live_start_time = room_info["live_start_time"].uIntValue
+            roomInfo.online = room_info["online"].uIntValue
+            roomInfo.cover = room_info["cover"].stringValue
+            
+            roomInfo.uname = anchor_info["base_info"]["uname"].stringValue
+            roomInfo.face = anchor_info["base_info"]["face"].stringValue
+            
+            /// Get `room_id` and GetDanmuInfo
+            
+            if (!roomInfo.room_id.isEmpty) {
+                m_realRoomid = roomInfo.room_id
                 m_apiGetDanmuInfo = "https://api.live.bilibili.com/xlive/web-room/v1/index/getDanmuInfo?id=" + m_realRoomid
                 
                 let task2 = session.dataTask(with: URL(string: m_apiGetDanmuInfo)!) { [self] data, response, error in
@@ -384,8 +400,6 @@ class BilibiliCore: ObservableObject {
                     
                 }
                 task2.resume()
-            } else {
-                LOG("解析API GetInfoByRoom JSON数据错误：\(String(describing: result.error))", .ERROR)
             }
         }
         task1.resume()
