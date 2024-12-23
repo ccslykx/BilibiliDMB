@@ -190,8 +190,8 @@ struct DisplayView: View {
                             AsyncImage(url: URL(string: bilicore.roomInfo.face)!) { image in
                                 image
                                     .resizable(resizingMode: .stretch)
+                                    .frame(width: 64.0, height: 64.0)
                                     .scaledToFit()
-                                    .frame(width: 64.0 * scale, height: 64.0 * scale)
                             } placeholder: {
                                 Color.clear
                             }
