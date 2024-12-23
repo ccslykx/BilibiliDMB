@@ -159,3 +159,9 @@ struct FixedSizeArray<T: Equatable> : Equatable, RandomAccessCollection {
         return array[index]
     }
 }
+
+class ScreenAwakeManager: ObservableObject {
+    func keepScreenAwake(_ shouldKeepAwake: Bool) {
+        UIApplication.shared.isIdleTimerDisabled = shouldKeepAwake
+    }
+}

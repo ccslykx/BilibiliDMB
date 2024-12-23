@@ -166,6 +166,7 @@ struct SettingView: View {
 
 struct DisplayView: View {
     @State var bilicore: BilibiliCore
+    @StateObject private var screenAwakeManager = ScreenAwakeManager()
     
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("bili_danmu_scale") private var scale: Double = 1.0
@@ -261,6 +262,12 @@ struct DisplayView: View {
             .padding(10)
             .navigationTitle(bilicore.isConnected && !bilicore.roomInfo.uname.isEmpty ? "欢迎光临 \(bilicore.roomInfo.uname) 的直播间" : "") /// TODO: use uname
             .toolbarTitleDisplayMode(.inline)
+            .onAppear() {
+                screenAwakeManager.keepScreenAwake(bilicore.isConnected)
+            }
+            .onDisappear() {
+                screenAwakeManager.keepScreenAwake(false)
+            }
             
         }
     }
