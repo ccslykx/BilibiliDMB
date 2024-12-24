@@ -16,7 +16,7 @@ struct MainView: View {
             DisplayView()
                     .tabItem {
                         Image(systemName: "list.star")
-                        Text("弹幕")
+                        Text("弹幕板")
                     }
 
             SettingView()
@@ -195,22 +195,29 @@ struct DisplayView: View {
             
             /// 登录二维码
             if (bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue) {
-                Text(bilicore.qrcode_status)
-                    .frame(minWidth: 80, minHeight: 30)
-                    .foregroundStyle( { () -> Color in
-                        if (bilicore.bili_status == .CONNECTED) {
-                            return Color.green
-                        } else if (bilicore.bili_status == .QRCODE_TIMEOUT) {
-                            return Color.red
-                        } else {
-                            return Color.primary
-                        }
-                    }() )
-                Button(action: { bilicore.login() }, label: { Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
+                Text("提示：因B站限制，匿名状态无法正常获取弹幕，请使用B站客户端扫码登录")
+                    .frame(minWidth: 80, maxWidth: 300, minHeight: 30)
+
+                Button(action: { bilicore.login() }, label: {
+                    Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
                 })
                 .buttonStyle(.plain)
                 .onAppear() {
                     bilicore.login()
+                }
+                
+                if (!bilicore.qrcode_status.isEmpty) {
+                    Text("状态：\(bilicore.qrcode_status)")
+                        .frame(minWidth: 80, maxWidth: 300, minHeight: 30)
+                        .foregroundStyle( { () -> Color in
+                            if (bilicore.bili_status == .CONNECTED) {
+                                return Color.green
+                            } else if (bilicore.bili_status == .QRCODE_TIMEOUT) {
+                                return Color.red
+                            } else {
+                                return Color.primary
+                            }
+                        }() )
                 }
             }
             

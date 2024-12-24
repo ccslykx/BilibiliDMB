@@ -723,6 +723,7 @@ extension BilibiliCore: WebSocketDelegate {
             
         case .reconnectSuggested(_):
             LOG("ReconnectSuggested")
+            self.connect(roomid: self.m_roomid)
             break
             
         case .cancelled:
