@@ -222,17 +222,17 @@ struct DisplayView: View {
                             ForEach(bilicore.bilibiliMSGs.indices, id: \.self) { i in
                                 if bilicore.bilibiliMSGs[i] is DanmuMSG {
                                     DanmuView(danmuMSG: (bilicore.bilibiliMSGs[i] as? DanmuMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
-                                        .background(.clear)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
                                 } else if bilicore.bilibiliMSGs[i] is GiftMSG {
                                     GiftView(giftMSG: (bilicore.bilibiliMSGs[i] as? GiftMSG)!, scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal).id(i)
-                                        .background(.clear)
+                                        .listRowBackground(Color.clear)
+                                        .listRowSeparator(.hidden)
                                 }
                             }
                         }
-                        .background(.clear)
                         .scrollContentBackground(.hidden)
-                        .contentTransition(.opacity)
-                        .contentMargins(edgePadding)
+                        .listStyle(.plain)
                         .gesture(
                             DragGesture()
                                 .onChanged { _ in isUserScrolling = true } /// IDK why onEnded not work
