@@ -96,6 +96,7 @@ struct DisplayView: View {
     @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
     
     private let edgePadding = 16.0
+    private let qrcodeSize = 300.0
     
     var body: some View {
         VStack {
@@ -196,29 +197,30 @@ struct DisplayView: View {
             /// 登录二维码
             if (bilicore.bili_status.rawValue < BiliStatus.LOGGEDIN.rawValue) {
                 Text("提示：因B站限制，匿名状态无法正常获取弹幕，请使用B站客户端扫码登录")
-                    .frame(minWidth: 80, maxWidth: 300, minHeight: 30)
+                    .frame(minWidth: 80, maxWidth: qrcodeSize, minHeight: 30)
 
                 Button(action: { bilicore.login() }, label: {
-                    Image(generateQRCode(from: bilicore.qrcode_url, size: 300)!, scale: 1.0, label: Text("Login QR Code"))
+                    if (!bilicore.qrcode_url.isEmpty) {
+                        Image(generateQRCode(from: bilicore.qrcode_url, size: qrcodeSize)!, scale: 1.0, label: Text("Login QR Code"))
+                    }
                 })
+                .frame(width: qrcodeSize, height: qrcodeSize)
                 .buttonStyle(.plain)
                 .onAppear() {
                     bilicore.login()
                 }
                 
-                if (!bilicore.qrcode_status.isEmpty) {
-                    Text("状态：\(bilicore.qrcode_status)")
-                        .frame(minWidth: 80, maxWidth: 300, minHeight: 30)
-                        .foregroundStyle( { () -> Color in
-                            if (bilicore.bili_status == .CONNECTED) {
-                                return Color.green
-                            } else if (bilicore.bili_status == .QRCODE_TIMEOUT) {
-                                return Color.red
-                            } else {
-                                return Color.primary
-                            }
-                        }() )
-                }
+                Text("状态：\(bilicore.qrcode_status.isEmpty ? "..." : bilicore.qrcode_status)")
+                    .frame(minWidth: 80, maxWidth: qrcodeSize, minHeight: 30)
+                    .foregroundStyle( { () -> Color in
+                        if (bilicore.bili_status == .CONNECTED) {
+                            return Color.green
+                        } else if (bilicore.bili_status == .QRCODE_TIMEOUT) {
+                            return Color.red
+                        } else {
+                            return Color.primary
+                        }
+                    }() )
             }
             
             /// 弹幕区
