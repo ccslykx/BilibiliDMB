@@ -239,7 +239,9 @@ class BilibiliCore: ObservableObject {
             }
         }
         
-        saveCookieToFile(cookies)
+        if (!saveCookieToFile(cookies)) {
+            LOG("Failed save cookies to file", .WARNING)
+        }
     }
     
     private func saveCookieToFile(_ cookies: [String : String]) -> Bool {
@@ -444,6 +446,8 @@ class BilibiliCore: ObservableObject {
     
     func connect(roomid: String) {
         self.bili_status = .CONNECTING
+        self.bilibiliMSGs.removeAll()
+        self.entryMSGs.removeAll()
         
         m_roomid = roomid
         LOG("初始化房间信息...")
@@ -550,25 +554,25 @@ class BilibiliCore: ObservableObject {
         //let packetLen = header.subdata(in: Range(NSRange(location: 0, length: 4))!)
         //let headerLen = header.subdata(in: Range(NSRange(location: 4, length: 2))!)
         let protocolVer = header.subdata(in: Range(NSRange(location: 6, length: 2))!)
-        let operation = header.subdata(in: Range(NSRange(location: 8, length: 4))!)
+        //let operation = header.subdata(in: Range(NSRange(location: 8, length: 4))!)
         //let sequenceID = header.subdata(in: Range(NSRange(location: 12, length: 4))!)
         let body = data.subdata(in: Range(NSRange(location: 16, length: data.count-16))!)
         
         switch protocolVer._2BytesToInt() {
         case 0: // JSON
-            if let json = try? JSON(data: body) {
+//            if let json = try? JSON(data: body) {
 //                LOG("[Protocol Version 0] \(String(describing: json.rawString()))")
-            } else {
+//            } else {
 //                LOG("[Protocol Version 0] \(String(describing: body))")
-            }
+//            }
             break
             
         case 1: // 人气值
-            if let json = try? JSON(data: body) {
+//            if let json = try? JSON(data: body) {
 //                LOG("[Protocol Version 1] \(String(describing: json.rawString()))")
-            } else {
+//            } else {
 //                LOG("[Protocol Version 1] \(String(describing: body))")
-            }
+//            }
             break
             
         case 2: // zlib JSON
@@ -677,7 +681,7 @@ extension BilibiliCore: WebSocketDelegate {
     func didReceive(event: WebSocketEvent, client: WebSocketClient) {
         
         switch event {
-        case .connected(let header):
+        case .connected:
 //            LOG("Connected: \(header)")
             m_socket?.write(data: self.packet(7))
             m_heartbeatTimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(sendHeartbeat), userInfo: nil, repeats: true)

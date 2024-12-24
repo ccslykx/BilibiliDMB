@@ -121,7 +121,7 @@ struct SysMsgView: View {
 
 #Preview {
     VStack {
-        var now = Int(Date.now.timeIntervalSince1970)
+        let now = Int(Date.now.timeIntervalSince1970)
         EntryView(uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now)
 
         DanmuView(content: "我是一条弹幕", color: 7654321, uid: 1, uname: "Ccslykx", mlevel: 12, mcolor: 1234567, mname: "Ccslykx", timestamp: now, scale: 0.2)
