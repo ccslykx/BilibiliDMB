@@ -19,8 +19,8 @@ enum BiliStatus: Int {
     case WAIT_SACN_CONFIRM = 2
     case QRCODE_TIMEOUT = 3
     case LOGGEDIN = 4
-    case CONNECTING = 5
-    case DISCONNECTED = 6
+    case DISCONNECTED = 5
+    case CONNECTING = 6
     case CONNECTED = 7
 }
 
