@@ -9,24 +9,28 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(\.colorScheme) var colorScheme
+    @AppStorage("agreed") private var agreed: Bool = false
     
     var body: some View {
-        #if os(iOS)
-        TabView {
-            DisplayView()
+        if (!agreed) {
+            AgreementView()
+        } else {
+#if os(iOS)
+            TabView {
+                DisplayView()
                     .tabItem {
                         Image(systemName: "list.star")
                         Text("弹幕板")
                     }
-
-            SettingView()
+                
+                SettingView()
                     .tabItem {
                         Image(systemName: "gearshape.fill")
                         Text("设置")
                     }
-        }
-        .background(colorScheme == .dark ? Color.black : Color.white)
-        #elseif os(macOS)
+            }
+            .background(colorScheme == .dark ? Color.black : Color.white)
+#elseif os(macOS)
             NavigationSplitView(sidebar: {
                 SettingView()
                 Spacer()
@@ -35,7 +39,8 @@ struct MainView: View {
                 DisplayView()
             })
             .background()
-        #endif
+#endif
+        }
     }
 }
 
@@ -47,19 +52,32 @@ struct SettingView: View {
     @AppStorage("bili_danmu_displayTime") private var is_display_time: Bool = true
     @AppStorage("bili_danmu_displayMedal") private var is_display_medal: Bool = true
     
+    @AppStorage("agreed") private var agreed: Bool = false
+    
     var body: some View {
         VStack {
             #if os(macOS)
             Text("设置").font(.title)
             #endif
             
-            Spacer(minLength: 60) /// TODO: Change to Logo
+            HStack {
+                Image(.logo)
+                    .resizable()
+                    .frame(maxWidth: 96, maxHeight: 96)
+                
+                Text("B站弹幕板")
+                    .font(.custom("", size: 48))
+                    .bold()
+                    .frame(maxHeight: 128)
+                    .padding(.leading, 32)
+            }
+            .padding(10)
             
-            VStack {
+            List {
                 HStack {
                     Text("缩放: \(scale, specifier: "%.1f")")
                         .frame(minWidth: 120, alignment: .leading)
-                    Slider(value: $scale, in: 0.1...4, step: 0.1)
+                    Slider(value: $scale, in: 0.5...2, step: 0.1)
                 }
                 
                 Toggle(isOn: $is_display_time) {
@@ -69,10 +87,15 @@ struct SettingView: View {
                 Toggle(isOn: $is_display_medal) {
                     Text("显示粉丝牌")
                 }
-                
-                DanmuView(content: "我是一条测试弹幕", color: 0, uid: 0, uname: "用户名", mlevel: 0, mcolor: 0, mname: "粉丝牌", timestamp: Int(Date.now.timeIntervalSince1970), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
+                Button("重新确认用户须知", role: .destructive) {
+                    agreed = false
+                }
             }
             .padding(.horizontal, 60)
+            .scrollContentBackground(.hidden)
+            .listStyle(.plain)
+            
+            DanmuView(content: "我是一条测试弹幕", color: 0, uid: 0, uname: "用户名", mlevel: 0, mcolor: 0, mname: "粉丝牌", timestamp: Int(Date.now.timeIntervalSince1970), scale: scale, fontname: fontname, is_display_time: is_display_time, is_display_medal: is_display_medal)
             
             Spacer()
         }
@@ -282,5 +305,5 @@ struct DisplayView: View {
 }
 
 #Preview {
-    MainView()
+    SettingView()
 }
