@@ -1,4 +1,4 @@
-<img width="128px" src="res/icon.svg" align="left" style="border-radius: 20%; background-color: white; border: 1px solid #EEEEEE;"/>
+<img width="128px" src="res/icon_border.svg" align="left"/>
 
 # B站弹幕板
 
@@ -10,9 +10,9 @@
 
 <table>
 <tr>
-    <td> <img src="asset/example.jpeg">
-    <td> <img src="asset/setting_view.jpeg">
-    <td> <img src="asset/user_agreements.jpeg">
+    <td> <img src="assets/example.jpeg">
+    <td> <img src="assets/setting_view.jpeg">
+    <td> <img src="assets/user_agreements.jpeg">
 </table>
 
 
