@@ -1,0 +1,51 @@
+{
+  "originHash" : "d18825eb65908beaf28c1c00ca10a9ea2e7e49fcc25740ee71423c766a5ceb42",
+  "pins" : [
+    {
+      "identity" : "bitbytedata",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tsolomko/BitByteData",
+      "state" : {
+        "revision" : "cdcdc5177ad536cfb11b95c620f926a81014b7fe",
+        "version" : "2.0.4"
+      }
+    },
+    {
+      "identity" : "starscream",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ccslykx/Starscream.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "c6bfd1af48efcc9a9ad203665db12375ba6b145a"
+      }
+    },
+    {
+      "identity" : "swcompression",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ccslykx/SWCompression.git",
+      "state" : {
+        "branch" : "develop",
+        "revision" : "60b76e64908f26eaa68a88fc7f8f1d2a004c2edd"
+      }
+    },
+    {
+      "identity" : "swiftbrotli",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ccslykx/SwiftBrotli.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "32a2b3b522133736fa133f84ff3de7417e151e7a"
+      }
+    },
+    {
+      "identity" : "swiftyjson",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ccslykx/SwiftyJSON.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "58391413ad113d98ea7f434354dceb8cb751b54e"
+      }
+    }
+  ],
+  "version" : 3
+}
