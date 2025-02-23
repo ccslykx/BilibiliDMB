@@ -31,7 +31,11 @@ struct AgreementView: View {
                 
                 Button("拒绝", role: .cancel) {
                     agreed = false
+#if os(iOS)
                     UIApplication.shared.perform(#selector(NSXPCConnection.suspend))
+#elseif os(macOS)
+                    NSApplication.shared.terminate(nil)
+#endif
                 }
                 .buttonStyle(.bordered)
                 
